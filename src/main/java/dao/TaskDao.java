@@ -135,6 +135,31 @@ public class TaskDao extends AbstractDao<TaskEntity>{
             return null;
         }
     }
+    public List<TaskEntity> findTasksByCategory2(CategoryEntity category, boolean active) {
+        try {
+            return  (List<TaskEntity>) em.createNamedQuery("Task.findTaskByCategory2").setParameter("category", category).setParameter("active", active).getResultList();
 
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public List<TaskEntity> findTasksByUser2(UserEntity userEntity, boolean active) {
+        try {
+            List<TaskEntity> taskEntityEntities = (List<TaskEntity>) em.createNamedQuery("Task.findTaskByUser2").setParameter("user", userEntity).setParameter("active", active).getResultList();
+            return taskEntityEntities;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public List<TaskEntity> findDeletedTasks() {
+        try {
+            List<TaskEntity> taskEntityEntities = (List<TaskEntity>) em.createNamedQuery("Task.findDeletedTasks").getResultList();
+            return taskEntityEntities;
+        } catch (Exception e) {
+            return null;
+        }
+    }
 
 }

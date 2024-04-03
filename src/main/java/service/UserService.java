@@ -30,37 +30,14 @@ public class UserService {
     @GET
     @Path("")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getUsers(@HeaderParam("token") String token) {
-        boolean user = userBean.tokenExists(token);
-        if (!user) {
-            return Response.status(403).entity("User with this token is not found").build();
+    public Response getFilteredUsers(@HeaderParam("token") String token, @QueryParam("role") String role, @QueryParam("active") Boolean active) {
+        boolean authorized = userBean.isUserAuthorized(token);
+        if (!authorized) {
+            return Response.status(403).entity("Forbidden").build();
         }else {
-            List<UserEntity> users = userBean.getUsers();
-            return Response.status(200).entity(users).build();
-        }
-    }
-    @GET
-    @Path("/active")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getActiveUsers(@HeaderParam("token") String token) {
-        boolean user = userBean.tokenExists(token);
-        if (!user) {
-            return Response.status(403).entity("User with this token is not found").build();
-        }else {
-            ArrayList<User> users = userBean.getActiveUsers(token);
-            return Response.status(200).entity(users).build();
-        }
-    }
 
-    @GET
-    @Path("/inactive")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getInactiveUsers(@HeaderParam("token") String token) {
-        boolean user = userBean.tokenExists(token);
-        if (!user) {
-            return Response.status(403).entity("User with this token is not found").build();
-        }else {
-            ArrayList<User> users = userBean.getInactiveUsers(token);
+            ArrayList<User> users = userBean.getFilteredUsers(role, active);
+            System.out.println(users.size());
             return Response.status(200).entity(users).build();
         }
     }

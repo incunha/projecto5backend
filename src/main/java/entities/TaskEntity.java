@@ -6,15 +6,17 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name="Tasks")
-@NamedQuery(name="Task.findAllActiveTasks", query="SELECT a FROM TaskEntity a WHERE a.active = true ORDER BY a.priority DESC, a.startDate ASC, a.endDate ASC")
-@NamedQuery(name="Task.findAllInactiveTasks", query="SELECT a FROM TaskEntity a WHERE a.active = false ORDER BY a.priority DESC, a.startDate ASC, a.endDate ASC")
 @NamedQuery(name="Task.findTaskById", query="SELECT a FROM TaskEntity a WHERE a.id = :id")
-@NamedQuery(name="Task.findTaskByUser", query="SELECT a FROM TaskEntity a WHERE a.user = :user order by a.priority DESC, a.startDate ASC, a.endDate ASC")
-@NamedQuery(name="Task.findTaskByCategory", query="SELECT a FROM TaskEntity a WHERE a.category = :category order by a.priority DESC, a.startDate ASC, a.endDate ASC")
+@NamedQuery(name="Task.findTaskByUser2", query="SELECT a FROM TaskEntity a WHERE a.user = :user and a.active = :active order by a.priority desc, a.startDate asc, a.endDate asc")
+@NamedQuery(name="Task.findTaskByUser", query="SELECT a FROM TaskEntity a WHERE a.user = :user")
+@NamedQuery(name="Task.findTaskByCategory2", query="SELECT a FROM TaskEntity a WHERE a.category = :category and a.active = :active order by a.priority desc, a.startDate asc, a.endDate asc")
+@NamedQuery(name="Task.findTaskByCategory", query="SELECT a FROM TaskEntity a WHERE a.category = :category")
 @NamedQuery(name="Task.findTaskByStatus", query="SELECT a FROM TaskEntity a WHERE a.status = :status")
 @NamedQuery(name="Task.findTaskByPriority", query="SELECT a FROM TaskEntity a WHERE a.priority = :priority")
 @NamedQuery(name="Task.findBlockedTasks", query="SELECT a FROM TaskEntity a WHERE a.active = false")
 @NamedQuery(name="Task.findUserById", query="SELECT a FROM TaskEntity a WHERE a.user = :user")
+@NamedQuery(name="Task.findAllActiveTasks", query="SELECT a FROM TaskEntity a WHERE a.active = true order by a.priority desc, a.startDate asc, a.endDate asc")
+@NamedQuery(name="Task.findDeletedTasks", query="SELECT a FROM TaskEntity a WHERE a.active=false")
 public class TaskEntity implements Serializable {
     @Id
     @Column (name="id", nullable = false, unique = true, updatable = false)

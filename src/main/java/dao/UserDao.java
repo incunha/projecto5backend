@@ -9,13 +9,15 @@ import jakarta.persistence.PersistenceContext;
 import java.util.List;
 
 @Stateless
-public class UserDao extends AbstractDao<UserEntity>{
+public class UserDao extends AbstractDao<UserEntity> {
     @PersistenceContext
     private EntityManager em;
     private static final long serialVersionUID = 1L;
+
     public UserDao() {
         super(UserEntity.class);
     }
+
     public UserEntity findUserByToken(String token) {
         try {
             return (UserEntity) em.createNamedQuery("User.findUserByToken").setParameter("token", token)
@@ -25,21 +27,7 @@ public class UserDao extends AbstractDao<UserEntity>{
             return null;
         }
     }
-    public List<UserEntity> findAllActiveUsers() {
-        try {
-            return (List<UserEntity>) em.createNamedQuery("User.findAllActiveUsers").getResultList();
-        } catch (NoResultException e) {
-            return null;
-        }
-    }
 
-    public List<UserEntity> findAllInactiveUsers() {
-        try {
-            return (List<UserEntity>) em.createNamedQuery("User.findAllInactiveUsers").getResultList();
-        } catch (NoResultException e) {
-            return null;
-        }
-    }
     public UserEntity findUserByUsername(String username) {
         try {
             return (UserEntity) em.createNamedQuery("User.findUserByUsername").setParameter("username", username)
@@ -49,10 +37,31 @@ public class UserDao extends AbstractDao<UserEntity>{
             return null;
         }
     }
-    public void updateToken(UserEntity userEntity) {
-        em.createNamedQuery("User.updateToken").setParameter("token", userEntity.getToken()).setParameter("username",userEntity.getName()).executeUpdate();
+
+    public List<UserEntity> getUsersByRole(String role, Boolean active) {
+        return em.createNamedQuery("User.findUserByRole").setParameter("role", role).setParameter("active", active).getResultList();
     }
+
+
+    public List<UserEntity> getDeletedUsers() {
+        return em.createNamedQuery("User.findDeletedUsers").getResultList();
+    }
+
+    public void updateToken(UserEntity userEntity) {
+        em.createNamedQuery("User.updateToken").setParameter("token", userEntity.getToken()).setParameter("username", userEntity.getName()).executeUpdate();
+    }
+
     public void updateUser(UserEntity userEntity) {
         em.merge(userEntity);
     }
+
+    public List<UserEntity> getActiveUsers() {
+        return em.createNamedQuery("User.findActiveUsers").getResultList();
+    }
+
+    public List<UserEntity> findAllUsers() {
+        return em.createNamedQuery("User.findAllUsers").getResultList();
+    }
+
+
 }

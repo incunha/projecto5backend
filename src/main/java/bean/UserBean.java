@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,11 +20,15 @@ import jakarta.ejb.Startup;
 import jakarta.ejb.Stateless;
 import jakarta.enterprise.context.ApplicationScoped;
 import dto.User;
+import jakarta.jms.Message;
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
 import jakarta.json.bind.JsonbConfig;
 import jakarta.security.enterprise.credential.Password;
 import utilities.EncryptHelper;
+import dto.MessageDto;
+import entities.MessageEntity;
+import dao.MessageDao;
 
 @Singleton
 public class UserBean {
@@ -34,6 +39,8 @@ public class UserBean {
     UserDao userDao;
     @EJB
     TaskBean taskDao;
+    @EJB
+    MessageDao MessageDao;
     @EJB
     EncryptHelper EncryptHelper;
 
@@ -191,31 +198,18 @@ public boolean findOtherUserByUsername(String username) {
         UserEntity userEntity = userDao.findUserByUsername(username);
         return convertToDto(userEntity);
     }
-    public ArrayList<User> getActiveUsers(String token) {
-        UserEntity user = userDao.findUserByToken(token);
-        List<UserEntity> userEntities = userDao.findAllActiveUsers();
-        ArrayList<User> users = new ArrayList<>();
-
-        for (UserEntity userEntity : userEntities) {
-            if(!userEntity.getUsername().equals("admin") || !userEntity.getUsername().equals("deleted") || !userEntity.getUsername().equals(user.getUsername())){
-                users.add(convertToDto(userEntity));
+    public ArrayList<User> getActiveUsers() {
+        List<UserEntity> users = userDao.getActiveUsers();
+        ArrayList<User> usersDto = new ArrayList<>();
+        for (UserEntity user : users) {
+            if (!user.getUsername().equals("admin") && !user.getUsername().equals("deleted")) {
+                usersDto.add(convertToDto(user));
             }
         }
-        return users;
+        return usersDto;
     }
 
-    public ArrayList<User> getInactiveUsers(String token) {
-        UserEntity user = userDao.findUserByToken(token);
-        List<UserEntity> userEntities = userDao.findAllInactiveUsers();
-        ArrayList<User> users = new ArrayList<>();
 
-        for (UserEntity userEntity : userEntities) {
-            if(!userEntity.getUsername().equals("admin") || !userEntity.getUsername().equals("deleted") || !userEntity.getUsername().equals(user.getUsername())){
-                users.add(convertToDto(userEntity));
-            }
-        }
-        return users;
-    }
 
     public UserEntity convertToEntity(User user) {
         UserEntity userEntity = new UserEntity();
@@ -357,8 +351,95 @@ public boolean findOtherUserByUsername(String username) {
             userDao.persist(userEntity1);
         }
     }
-}
 
+    public ArrayList<User> getFilteredUsers(String role, Boolean active) {
+        ArrayList<User> usersDto = new ArrayList<>();
+        if(active==null && role==null){
+            return getAllUsers();
+        }
+        if (active && role == null ) {
+            return getActiveUsers();
+        } else if (!active && role == null ) {
+            return getDeletedUsers();
+
+        } else if (active && role != null ) {
+            List<UserEntity> users = userDao.getUsersByRole(role,active);
+            for (UserEntity user : users) {
+                usersDto.add(convertToDto(user));
+            }
+            return usersDto;
+
+        } else if (!active && role != null) {
+            List<UserEntity> users = userDao.getDeletedUsers();
+            for (UserEntity user : users) {
+                if (user.getRole().equals(role)) {
+                    usersDto.add(convertToDto(user));
+                }
+            }
+            return usersDto;
+        } else if (!active && role == null ) {
+            List<UserEntity> users = userDao.getDeletedUsers();
+            for (UserEntity user : users) {
+                usersDto.add(convertToDto(user));
+            }
+            return usersDto;
+        }
+        return usersDto;
+
+    }
+
+    public ArrayList<User> getAllUsers() {
+        List<UserEntity> users = userDao.findAllUsers();
+        ArrayList<User> usersDto = new ArrayList<>();
+        for (UserEntity user : users) {
+            usersDto.add(convertToDto(user));
+        }
+        return usersDto;
+    }
+
+
+    public ArrayList<User> getDeletedUsers() {
+        List<UserEntity> users = userDao.getDeletedUsers();
+        ArrayList<User> usersDto = new ArrayList<>();
+        for (UserEntity user : users) {
+            usersDto.add(convertToDto(user));
+        }
+        return usersDto;
+    }
+
+    public void sendMessage(MessageDto messageDto) {
+        UserEntity sender = userDao.findUserByUsername(messageDto.getSender());
+        UserEntity receiver = userDao.findUserByUsername(messageDto.getReceiver());
+        if (sender != null && receiver != null) {
+            MessageEntity message = new MessageEntity();
+            message.setSender(sender);
+            message.setReceiver(receiver);
+            message.setMessage(messageDto.getMessage());
+            message.setTimestamp(messageDto.getSendDate());
+            message.setRead(false);
+            MessageDao.persist(message);
+        }
+    }
+    public MessageEntity convertToEntity(MessageDto messageDto) {
+        MessageEntity messageEntity = new MessageEntity();
+        messageEntity.setMessage(messageDto.getMessage());
+        messageEntity.setSender(userDao.findUserByUsername(messageDto.getSender()));
+        messageEntity.setReceiver(userDao.findUserByUsername(messageDto.getReceiver()));
+        messageEntity.setTimestamp(LocalDateTime.now());
+        messageEntity.setRead(messageDto.isRead());
+        return messageEntity;
+    }
+
+    public MessageDto convertToDto(MessageEntity messageEntity) {
+        MessageDto messageDto = new MessageDto();
+        messageDto.setMessage(messageEntity.getMessage());
+        messageDto.setSender(messageEntity.getSender().getUsername());
+        messageDto.setReceiver(messageEntity.getReceiver().getUsername());
+        messageDto.setSendDate(messageEntity.getTimestamp());
+        messageDto.setRead(messageEntity.isRead());
+        return messageDto;
+    }
+}
 
 
 

@@ -36,86 +36,31 @@ public class TaskService {
     @GET
     @Path("")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response isUserValid(@HeaderParam("token") String token) {
+    public Response getFilteredTasks(@HeaderParam("token") String token, @QueryParam("active") Boolean active, @QueryParam("category") String category, @QueryParam("username") String username, @QueryParam("id") String taskId) {
+
         boolean authorized = userBean.isUserAuthorized(token);
         if (!authorized) {
             return Response.status(401).entity("Unauthorized").build();
-        } else {
-            ArrayList<Task> taskList = new ArrayList<>();
-            for (TaskEntity taskEntity : taskBean.getTasks()) {
-                    taskList.add(taskBean.convertToDto(taskEntity));
+        }
+        if (taskId == null) {
+            if (active == null) {
+                active = true;
+                ArrayList<Task> taskList = taskBean.getFilteredTasks(active, category, username);
+                return Response.status(200).entity(taskList).build();
+
+            } else {
+                ArrayList<Task> taskList = taskBean.getFilteredTasks(active, category, username);
+                //taskList.sort(Comparator.comparing(Task::getPriority, Comparator.reverseOrder()).thenComparing(Comparator.comparing(Task::getStartDate).thenComparing(Task::getEndDate)));
+                return Response.status(200).entity(taskList).build();
             }
-            taskList.sort(Comparator.comparing(Task::getPriority, Comparator.reverseOrder()).thenComparing(Comparator.comparing(Task::getStartDate).thenComparing(Task::getEndDate)));
-            return Response.status(200).entity(taskList).build();
+
+        } else {
+            Task task = taskBean.findTaskById(taskId);
+            return Response.status(200).entity(task).build();
         }
     }
 
-    @GET
-    @Path("/active")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getAllActiveTasks(@HeaderParam("token") String token) {
-        boolean authorized = userBean.isUserAuthorized(token);
-        if (!authorized) {
-            return Response.status(401).entity("Unauthorized").build();
-        } else {
-            ArrayList<Task> taskList = taskBean.getAllActiveTasks();
-            //taskList.sort(Comparator.comparing(Task::getPriority, Comparator.reverseOrder()).thenComparing(Comparator.comparing(Task::getStartDate).thenComparing(Task::getEndDate)));
-            return Response.status(200).entity(taskList).build();
-        }
-    }
 
-    @GET
-    @Path("/inactive")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getAllInactiveTasks(@HeaderParam("token") String token) {
-        boolean authorized = userBean.isUserAuthorized(token);
-        if (!authorized) {
-            return Response.status(401).entity("Unauthorized").build();
-        } else {
-            ArrayList<Task> taskList = taskBean.getAllInactiveTasks();
-            taskList.sort(Comparator.comparing(Task::getPriority, Comparator.reverseOrder()).thenComparing(Comparator.comparing(Task::getStartDate).thenComparing(Task::getEndDate)));
-            return Response.status(200).entity(taskList).build();
-        }
-    }
-
-    @GET
-    @Path("/byUser/{username}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getTasksByUser(@HeaderParam("token") String token,@PathParam("username") String username) {
-        boolean authorized = userBean.isUserAuthorized(token);
-        if (!authorized) {
-            return Response.status(401).entity("Unauthorized").build();
-        } else {
-            User user = userBean.getUserByUsername(username);
-            ArrayList<Task> taskList = new ArrayList<>();
-            for (TaskEntity taskEntity : taskBean.getTasksByUser(userBean.convertToEntity(user))) {
-                if(taskEntity.isActive()) {
-                    taskList.add(taskBean.convertToDto(taskEntity));
-                }
-            }
-            taskList.sort(Comparator.comparing(Task::getPriority, Comparator.reverseOrder()).thenComparing(Comparator.comparing(Task::getStartDate).thenComparing(Task::getEndDate)));
-            return Response.status(200).entity(taskList).build();
-        }
-    }@GET
-    @Path("/byCategory/{category}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getTasksByCategory(@HeaderParam("token") String token, @PathParam("category") String category) {
-        boolean authorized = userBean.isUserAuthorized(token);
-        if (!authorized) {
-            return Response.status(401).entity("Unauthorized").build();
-        } else {
-            ArrayList<Task> taskList = new ArrayList<>();
-            for (TaskEntity taskEntity : taskBean.getTasks()) {
-                if(taskEntity.isActive()) {
-                    if(taskEntity.getCategory().getName().equals(category)) {
-                        taskList.add(taskBean.convertToDto(taskEntity));
-                    }
-                }
-            }
-            taskList.sort(Comparator.comparing(Task::getPriority, Comparator.reverseOrder()).thenComparing(Comparator.comparing(Task::getStartDate).thenComparing(Task::getEndDate)));
-            return Response.status(200).entity(taskList).build();
-        }
-    }
     @DELETE
     @Path("/{username}")
     @Produces(MediaType.APPLICATION_JSON)
