@@ -17,6 +17,9 @@ import jakarta.persistence.*;
 @NamedQuery(name="Task.findUserById", query="SELECT a FROM TaskEntity a WHERE a.user = :user")
 @NamedQuery(name="Task.findAllActiveTasks", query="SELECT a FROM TaskEntity a WHERE a.active = true order by a.priority desc, a.startDate asc, a.endDate asc")
 @NamedQuery(name="Task.findDeletedTasks", query="SELECT a FROM TaskEntity a WHERE a.active=false")
+@NamedQuery(name="Task.findTotalActiveTasks", query="SELECT COUNT (a) FROM TaskEntity a WHERE a.user = :user and a.active = true")
+@NamedQuery(name="Task.findActiveTasksByStatusAndUser", query="SELECT COUNT (a) FROM TaskEntity a WHERE a.user = :user and a.active = true and a.status = :status")
+
 public class TaskEntity implements Serializable {
     @Id
     @Column (name="id", nullable = false, unique = true, updatable = false)

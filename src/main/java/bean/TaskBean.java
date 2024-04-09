@@ -8,6 +8,7 @@ import entities.TaskEntity;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+
 import dao.TaskDao;
 import dao.UserDao;
 import bean.UserBean;
@@ -18,12 +19,14 @@ import jakarta.ejb.EJB;
 import jakarta.ejb.Singleton;
 import jakarta.ejb.Startup;
 import jakarta.ejb.Stateless;
+import org.apache.logging.log4j.LogManager;
 
 
 @Singleton
 
 public class
 TaskBean {
+    private static final org.apache.logging.log4j.Logger logger = LogManager.getLogger(TaskBean.class);
     public TaskBean() {
     }
     @EJB

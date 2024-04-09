@@ -19,7 +19,10 @@ public class User {
     String role;
     String userPhoto;
     String token;
+    String confirmationToken;
+
     boolean active = true;
+    boolean confirmed = false;
 
     public User() {
     }
@@ -38,6 +41,7 @@ public class User {
             this.role = role;
         }
         this.active = true;
+        this.confirmed = false;
     }
 
 
@@ -100,30 +104,6 @@ public class User {
         this.role = role;
     }
 
-
-    /*public ArrayList<Task> orderedtasks() {
-        ArrayList<Task> status10 = new ArrayList<Task>();
-        ArrayList<Task> status20 = new ArrayList<Task>();
-        ArrayList<Task> status30 = new ArrayList<Task>();
-        for (Task a : tasks) {
-            if (a.getStatus() == 10) {
-                status10.add(a);
-            } else if (a.getStatus() == 20) {
-                status20.add(a);
-            } else if (a.getStatus() == 30) {
-                status30.add(a);
-            }
-        }
-        status10.sort(Comparator.comparing(Task::getPriority,Comparator.reverseOrder()).thenComparing(Comparator.comparing(Task::getStartDate).thenComparing(Task::getEndDate)));
-        status20.sort(Comparator.comparing(Task::getPriority,Comparator.reverseOrder()).thenComparing(Comparator.comparing(Task::getStartDate).thenComparing(Task::getEndDate)));
-        status30.sort(Comparator.comparing(Task::getPriority,Comparator.reverseOrder()).thenComparing(Comparator.comparing(Task::getStartDate).thenComparing(Task::getEndDate)));
-        ArrayList<Task> orderedTasks = new ArrayList<Task>();
-        orderedTasks.addAll(status10);
-        orderedTasks.addAll(status20);
-        orderedTasks.addAll(status30);
-        return orderedTasks;
-    }*/
-
     @XmlElement
     public String getToken() {
         return token;
@@ -139,4 +119,19 @@ public class User {
     public void setActive(boolean active) {
         this.active = active;
     }
+    @XmlElement
+    public boolean isConfirmed() { return confirmed; }
+
+    public void setConfirmed(boolean confirmed) { this.confirmed = confirmed;}
+
+    @XmlElement
+    public String getConfirmationToken() {
+        return confirmationToken;
+    }
+
+    public void setConfirmationToken(String confirmationToken) {
+        this.confirmationToken = confirmationToken;
+    }
+
+
 }

@@ -5,13 +5,13 @@ import java.io.Serializable;
 import jakarta.persistence.*;
 @Entity
 @Table(name="Users")
-@NamedQuery(name = "User.findUserByRole", query = "SELECT u FROM UserEntity u WHERE u.active = :active AND u.role = :role")
-@NamedQuery(name = "User.findDeletedUsers", query = "SELECT u FROM UserEntity u WHERE u.active = false")
-@NamedQuery(name = "User.findActiveUsers", query = "SELECT u FROM UserEntity u WHERE u.active = true")
-@NamedQuery(name = "User.findUserByToken", query = "SELECT DISTINCT u FROM UserEntity u WHERE u.token = :token")
-@NamedQuery(name = "User.findUserByUsername", query = "SELECT u FROM UserEntity u WHERE u.username = :username")
-@NamedQuery(name = "User.findAllUsers", query = "SELECT u FROM UserEntity u")
-@NamedQuery(name = "User.updateToken", query = "UPDATE UserEntity u SET u.token = :token WHERE u.username = :username")
+@NamedQuery(name = "User.findUserByRole", query = "SELECT u FROM UserEntity u WHERE u.active = :active AND u.role = :role AND u.confirmed = true")
+@NamedQuery(name = "User.findDeletedUsers", query = "SELECT u FROM UserEntity u WHERE u.active = false AND u.confirmed = true")
+@NamedQuery(name = "User.findActiveUsers", query = "SELECT u FROM UserEntity u WHERE u.active = true AND u.confirmed = true")
+@NamedQuery(name = "User.findUserByToken", query = "SELECT DISTINCT u FROM UserEntity u WHERE u.token = :token AND u.confirmed = true")
+@NamedQuery(name = "User.findUserByUsername", query = "SELECT u FROM UserEntity u WHERE u.username = :username AND u.confirmed = true")
+@NamedQuery(name = "User.findAllUsers", query = "SELECT u FROM UserEntity u WHERE u.confirmed = true")
+@NamedQuery(name = "User.updateToken", query = "UPDATE UserEntity u SET u.token = :token WHERE u.username = :username AND u.confirmed = true")
 public class UserEntity implements Serializable{
     @Id
     @Column (name="id", nullable = false, unique = true, updatable = false)
@@ -20,7 +20,7 @@ public class UserEntity implements Serializable{
     String name;
     @Column (name="email", nullable = false, unique = true)
     String email;
-    @Column (name="password", nullable = false, unique = false)
+    @Column (name="password", nullable = true, unique = false)
     String password;
     @Column (name="contactNumber", nullable = false, unique = false)
     String contactNumber;
@@ -32,6 +32,12 @@ public class UserEntity implements Serializable{
     String role;
     @Column (name="active", nullable = false, unique = false)
     boolean active;
+
+    @Column (name="confirmed", nullable = false, unique = false)
+    boolean confirmed;
+    @Column(name="confirmation_token", nullable=true, unique=true)
+    private String confirmationToken;
+
     public String getUsername() {
         return username;
     }
@@ -98,6 +104,17 @@ public class UserEntity implements Serializable{
     }
     public void setActive(boolean active) {
         this.active = active;
+    }
+
+    public boolean isConfirmed() { return confirmed; }
+    public void setConfirmed(boolean confirmed) { this.confirmed = confirmed; }
+
+    public String getConfirmationToken() {
+        return confirmationToken;
+    }
+
+    public void setConfirmationToken(String confirmationToken) {
+        this.confirmationToken = confirmationToken;
     }
 }
 

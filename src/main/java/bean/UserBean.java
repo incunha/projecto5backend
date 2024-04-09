@@ -3,11 +3,13 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.lang.reflect.Array;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import dao.TaskDao;
 import dao.UserDao;
 import dto.PasswordDto;
 import dto.Task;
@@ -30,6 +32,7 @@ import dto.MessageDto;
 import entities.MessageEntity;
 import dao.MessageDao;
 
+
 @Singleton
 public class UserBean {
     public UserBean() {
@@ -38,17 +41,29 @@ public class UserBean {
     @EJB
     UserDao userDao;
     @EJB
-    TaskBean taskDao;
+    TaskDao taskDao;
+    @EJB
+    TaskBean taskBean;
     @EJB
     MessageDao MessageDao;
     @EJB
     EncryptHelper EncryptHelper;
+    @EJB
+    EmailBean emailBean;
 
     public void addUser(User a) {
-        a.setPassword(EncryptHelper.encryptPassword(a.getPassword()));
+        String confirmationToken = generateConfirmationToken();
+        a.setConfirmationToken(confirmationToken);
         UserEntity userEntity = convertToEntity(a);
         userDao.persist(userEntity);
     }
+
+    public void confirmUser(User a) {
+        UserEntity userEntity = userDao.findUserByUsername(a.getUsername());
+        userEntity.setConfirmed(true);
+        userDao.updateUser(userEntity);
+    }
+
 
     public User getUser(String token) {
         UserEntity userEntity = userDao.findUserByToken(token);
@@ -222,6 +237,7 @@ public boolean findOtherUserByUsername(String username) {
         userEntity.setToken(user.getToken());
         userEntity.setRole(user.getRole());
         userEntity.setActive(user.isActive());
+        userEntity.setConfirmationToken(user.getConfirmationToken());
         return userEntity;
     }
 
@@ -252,6 +268,15 @@ public boolean findOtherUserByUsername(String username) {
         return token;
     }
 
+    public String generateConfirmationToken() {
+        String token = "";
+        for (int i = 0; i < 10; i++) {
+            token += (char) (Math.random() * 26 + 'a');
+        }
+        return token;
+    }
+
+
     public boolean deleteUser(String token, String username) {
         if(username.equals("admin") || username.equals("deleted")){
             return false;
@@ -267,7 +292,7 @@ public boolean findOtherUserByUsername(String username) {
         }
         if (responsible.getRole().equals("Owner") && !user.isActive()) {
             if(doesUserHaveTasks(username)){
-                List<TaskEntity> tasks = taskDao.getTasksByUser(user);
+                List<TaskEntity> tasks = taskBean.getTasksByUser(user);
                 UserEntity deletedUser = userDao.findUserByUsername("deleted");
                 for(TaskEntity task: tasks){
                     task.setUser(deletedUser);
@@ -317,7 +342,7 @@ public boolean findOtherUserByUsername(String username) {
 
     public boolean doesUserHaveTasks(String username) {
         UserEntity a = userDao.findUserByUsername(username);
-        List<TaskEntity> tasks = taskDao.getTasksByUser(a);
+        List<TaskEntity> tasks = taskBean.getTasksByUser(a);
         if (tasks.size() > 0) {
             return true;
         } else {
@@ -335,6 +360,7 @@ public boolean findOtherUserByUsername(String username) {
             userEntity.setUserPhoto("https://cdn-icons-png.freepik.com/512/10015/10015419.png");
             userEntity.setRole("Owner");
             userEntity.setActive(true);
+            userEntity.setConfirmed(true);
             userDao.persist(userEntity);
         }
         if(userDao.findUserByUsername("deleted") == null) {
@@ -348,6 +374,7 @@ public boolean findOtherUserByUsername(String username) {
             userEntity1.setUserPhoto("https://www.pngitem.com/pimgs/m/146-1468479_my-profile-icon-blank-profile-picture-circle-hd.png");
             userEntity1.setRole("developer");
             userEntity1.setActive(true);
+            userEntity1.setConfirmed(true);
             userDao.persist(userEntity1);
         }
     }
@@ -438,6 +465,14 @@ public boolean findOtherUserByUsername(String username) {
         messageDto.setSendDate(messageEntity.getTimestamp());
         messageDto.setRead(messageEntity.isRead());
         return messageDto;
+    }
+    public ArrayList<Integer> getTaskTotals (UserEntity user, int todo, int doing, int done) {
+        ArrayList<Integer> taskTotals = new ArrayList<>();
+        taskTotals.add(taskDao.findTotalActiveTasks(user) );
+        taskTotals.add(taskDao.findActiveTasksByStatusAndUser(user,todo));
+        taskTotals.add(taskDao.findActiveTasksByStatusAndUser(user,doing));
+        taskTotals.add(taskDao.findActiveTasksByStatusAndUser(user,done));
+        return taskTotals;
     }
 }
 
