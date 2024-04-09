@@ -12,6 +12,7 @@ import jakarta.persistence.*;
 @NamedQuery(name = "User.findUserByUsername", query = "SELECT u FROM UserEntity u WHERE u.username = :username AND u.confirmed = true")
 @NamedQuery(name = "User.findAllUsers", query = "SELECT u FROM UserEntity u WHERE u.confirmed = true")
 @NamedQuery(name = "User.updateToken", query = "UPDATE UserEntity u SET u.token = :token WHERE u.username = :username AND u.confirmed = true")
+@NamedQuery(name = "User.findUserByConfirmationToken", query = "SELECT u FROM UserEntity u WHERE u.confirmationToken = :confirmationToken AND u.confirmed = false")
 public class UserEntity implements Serializable{
     @Id
     @Column (name="id", nullable = false, unique = true, updatable = false)
@@ -35,7 +36,7 @@ public class UserEntity implements Serializable{
 
     @Column (name="confirmed", nullable = false, unique = false)
     boolean confirmed;
-    @Column(name="confirmation_token", nullable=true, unique=true)
+    @Column(name="confirmationToken", nullable=true, unique=true)
     private String confirmationToken;
 
     public String getUsername() {
@@ -112,7 +113,6 @@ public class UserEntity implements Serializable{
     public String getConfirmationToken() {
         return confirmationToken;
     }
-
     public void setConfirmationToken(String confirmationToken) {
         this.confirmationToken = confirmationToken;
     }

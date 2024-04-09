@@ -64,7 +64,7 @@ public class EmailBean {
 
         String userEmail = user.getEmail();
         String subject = "Scrum - Account Confirmation";
-        String confirmationLink = "http://localhost:5175/confirm-account?token=" + confirmationToken;
+        String confirmationLink = "http://localhost:5173/confirm-account?token=" + confirmationToken;
         String body = "Dear " + user.getName() + ",\n\n"
                 + "Thank you for registering with us. Please click on the link below to confirm your account.\n\n"
                 + "Confirmation Link: " + confirmationLink;

@@ -67,31 +67,34 @@ public class UserService {
             if (a.getRole() == null || a.getRole().isEmpty()) {
                 a.setRole("developer");
             }
-            userBean.addUser(a);
             String confirmationToken = userBean.generateConfirmationToken();
+            a.setConfirmationToken(confirmationToken);
+            userBean.addUser(a);
             emailBean.sendConfirmationEmail(a, confirmationToken, LocalDateTime.now());
-
             return Response.status(201).entity("A new user is created").build();
         }
     }
 
     @PATCH
-    @Path("/confirm")
+    @Path("/confirm/{confirmationToken}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response confirmUser(User a) {
+    public Response confirmUser (@PathParam("confirmationToken") String confirmationToken, PasswordDto password) {
+
+        User a = userBean.getUserByConfirmationToken(confirmationToken);
+        if (a == null) {
+            return Response.status(404).entity("User with this confirmation token is not found").build();
+        }
         boolean valid = userBean.isUserValid(a);
         if (!valid) {
             return Response.status(400).entity("All elements are required").build();
         } else {
-            boolean user = userBean.userNameExists(a.getUsername());
-            if (!user) {
-                return Response.status(404).entity("User with this username is not found").build();
-            } else {
-                userBean.confirmUser(a);
+                userBean.confirmUser(confirmationToken, password.getPassword());
+                userBean.deleteConfirmationToken(a);
                 return Response.status(200).entity("User confirmed").build();
             }
         }
-    }
+
+
 
 
     @GET
@@ -182,6 +185,7 @@ public class UserService {
     @Path("/login")
     @Produces(MediaType.APPLICATION_JSON)
     public Response login(@HeaderParam("username") String username, @HeaderParam("password") String password) {
+
         User user = userBean.getUserByUsername(username);
         if (!user.isActive()) {
             return Response.status(403).entity("User is not active").build();

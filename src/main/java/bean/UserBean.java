@@ -52,16 +52,29 @@ public class UserBean {
     EmailBean emailBean;
 
     public void addUser(User a) {
-        String confirmationToken = generateConfirmationToken();
-        a.setConfirmationToken(confirmationToken);
+
         UserEntity userEntity = convertToEntity(a);
+
         userDao.persist(userEntity);
     }
 
-    public void confirmUser(User a) {
-        UserEntity userEntity = userDao.findUserByUsername(a.getUsername());
+    public void confirmUser( String confirmationToken, String password) {
+        UserEntity userEntity = userDao.findUserByConfirmationToken(confirmationToken);
         userEntity.setConfirmed(true);
+        userEntity.setPassword(EncryptHelper.encryptPassword(password));
         userDao.updateUser(userEntity);
+
+    }
+
+    public void deleteConfirmationToken(User a) {
+        UserEntity userEntity = userDao.findUserByUsername(a.getUsername());
+        userEntity.setConfirmationToken(null);
+        userDao.updateUser(userEntity);
+    }
+
+    public User getUserByConfirmationToken(String confirmationToken) {
+        UserEntity userEntity = userDao.findUserByConfirmationToken(confirmationToken);
+        return convertToDto(userEntity);
     }
 
 
@@ -158,7 +171,7 @@ public boolean findOtherUserByUsername(String username) {
     public String login(String username, String password) {
         UserEntity user = userDao.findUserByUsername(username);
         String password1 = EncryptHelper.encryptPassword(password);
-        if (user != null && user.isActive()) {
+        if (user != null && user.isActive() && user.isConfirmed()) {
             String token;
             if (user.getPassword().equals(password1)) {
                 do {

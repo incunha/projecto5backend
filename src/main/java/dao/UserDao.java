@@ -38,6 +38,16 @@ public class UserDao extends AbstractDao<UserEntity> {
         }
     }
 
+    public UserEntity findUserByConfirmationToken(String confirmationToken) {
+        try {
+            return (UserEntity) em.createNamedQuery("User.findUserByConfirmationToken").setParameter("confirmationToken", confirmationToken)
+                    .getSingleResult();
+
+        } catch (NoResultException e) {
+            return null;
+        }
+    }
+
     public List<UserEntity> getUsersByRole(String role, Boolean active) {
         return em.createNamedQuery("User.findUserByRole").setParameter("role", role).setParameter("active", active).getResultList();
     }
@@ -62,6 +72,8 @@ public class UserDao extends AbstractDao<UserEntity> {
     public List<UserEntity> findAllUsers() {
         return em.createNamedQuery("User.findAllUsers").getResultList();
     }
+
+
 
 
 
