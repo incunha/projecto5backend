@@ -479,7 +479,18 @@ public boolean findOtherUserByUsername(String username) {
         messageDto.setRead(messageEntity.isRead());
         return messageDto;
     }
-    public ArrayList<Integer> getTaskTotals (UserEntity user, int todo, int doing, int done) {
+    /*public ArrayList<Integer> getTaskTotals (UserEntity user, int todo, int doing, int done) {
+        ArrayList<Integer> taskTotals = new ArrayList<>();
+        taskTotals.add(taskDao.findTotalActiveTasks(user) );
+        taskTotals.add(taskDao.findActiveTasksByStatusAndUser(user,todo));
+        taskTotals.add(taskDao.findActiveTasksByStatusAndUser(user,doing));
+        taskTotals.add(taskDao.findActiveTasksByStatusAndUser(user,done));
+        return taskTotals;
+    }*/
+
+    public ArrayList<Integer> getTaskTotals (String username, int todo, int doing, int done) {
+        UserEntity user = userDao.findUserByUsername(username);
+        System.out.println("OLHA AQUI" + username);
         ArrayList<Integer> taskTotals = new ArrayList<>();
         taskTotals.add(taskDao.findTotalActiveTasks(user) );
         taskTotals.add(taskDao.findActiveTasksByStatusAndUser(user,todo));

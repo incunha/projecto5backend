@@ -98,6 +98,7 @@ public class TaskService {
             taskBean.setInitialId(task);
             UserEntity userEntity = userBean.convertToEntity(user);
             TaskEntity taskEntity = taskBean.createTaskEntity(task,userEntity);
+            System.out.println(taskEntity.getUser() + " " + taskEntity.getCategory() + " " + taskEntity.getDescription() + " " + taskEntity.getPriority() + " " + taskEntity.getStartDate() + " " + taskEntity.getEndDate() + " " + taskEntity.getStatus() + " " + taskEntity.isActive());
             taskBean.addTask(taskEntity);
             return Response.status(201).entity(taskBean.convertToDto(taskEntity)).build();
         }

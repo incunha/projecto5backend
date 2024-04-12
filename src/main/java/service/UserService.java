@@ -265,16 +265,16 @@ public class UserService {
     @GET
     @Path("/totalTasks")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getTaskTotals(@HeaderParam("token") String token) {
+    public Response getTaskTotals(@HeaderParam("token") String token, @QueryParam("username") String username) {
         boolean authorized = userBean.isUserAuthorized(token);
         if (!authorized) {
             return Response.status(403).entity("Forbidden").build();
         } else {
-            User user = userBean.getUser(token);
+
             int todoStatus = 10;
             int doingStatus = 20;
             int doneStatus = 30;
-            ArrayList<Integer> totals = userBean.getTaskTotals(userBean.convertToEntity(user), todoStatus, doingStatus, doneStatus);
+            ArrayList<Integer> totals = userBean.getTaskTotals (username, todoStatus, doingStatus, doneStatus);
             return Response.status(200).entity(totals).build();
         }
     }
