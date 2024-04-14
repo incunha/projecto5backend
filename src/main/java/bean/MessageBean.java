@@ -10,6 +10,8 @@ import jakarta.ejb.Stateless;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @Stateless
 public class MessageBean {
@@ -17,18 +19,24 @@ public class MessageBean {
     @EJB
     private MessageDao messageDao;
 
-    // Método para enviar uma nova mensagem
+    private static final Logger LOGGER = Logger.getLogger(MessageBean.class.getName());
+
     public void sendMessage(UserEntity sender, UserEntity receiver, String messageContent) {
-        MessageEntity messageEntity = new MessageEntity();
-        messageEntity.setSender(sender);
-        messageEntity.setReceiver(receiver);
-        messageEntity.setMessage(messageContent);
-        messageEntity.setTimestamp(LocalDateTime.now());
-        messageEntity.setRead(false);
+        LOGGER.info("sendMessage method called");
+        try {
+            MessageEntity messageEntity = new MessageEntity();
+            messageEntity.setSender(sender);
+            messageEntity.setReceiver(receiver);
+            messageEntity.setMessage(messageContent);
+            messageEntity.setTimestamp(LocalDateTime.now());
+            messageEntity.setRead(false);
 
-        messageDao.createMessage(messageEntity); // Persiste a mensagem no banco de dados
+            messageDao.createMessage(messageEntity); // Persiste a mensagem no banco de dados
+            LOGGER.info("Message sent and saved in the database.");
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Error while sending and saving the message: ", e);
+        }
     }
-
     // Método para recuperar todas as mensagens trocadas entre dois usuários
     public List<MessageDto> getMessagesBetweenUsers(UserEntity user1, UserEntity user2) {
         List<MessageEntity> messageEntities = messageDao.findMessageByUser(user1, user2);

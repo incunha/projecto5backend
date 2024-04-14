@@ -27,7 +27,7 @@ public class MessageEntity implements Serializable {
 
     @Column (name="timestamp", nullable = false, unique = false)
     private LocalDateTime timestamp;
-    @Column (name="read", nullable = false, unique = false)
+    @Column (name="is_read", nullable = false, unique = false)
     private boolean read;
 
     public int getId() {

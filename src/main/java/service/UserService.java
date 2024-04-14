@@ -6,11 +6,9 @@ import java.util.Comparator;
 import java.util.List;
 
 import bean.EmailBean;
+import bean.MessageBean;
 import bean.UserBean;
-import dto.PasswordDto;
-import dto.Task;
-import dto.User;
-import dto.UserDto;
+import dto.*;
 import entities.UserEntity;
 import jakarta.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,6 +30,9 @@ public class UserService {
     EncryptHelper encryptHelper;
     @Inject
     EmailBean emailBean;
+    @Inject
+    MessageBean messageBean;
+
 
     @GET
     @Path("")
@@ -278,5 +279,23 @@ public class UserService {
             return Response.status(200).entity(totals).build();
         }
     }
+
+    @GET
+    @Path("/chat/{username1}/{username2}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getMessagesBetweenUsers(@HeaderParam("token") String token, @PathParam("username1") String username1, @PathParam("username2") String username2) {
+        boolean authorized = userBean.isUserAuthorized(token);
+        if (!authorized) {
+            return Response.status(403).entity("Forbidden").build();
+        } else {
+                User user1 = userBean.getUserByUsername(username1);
+                User user2 = userBean.getUserByUsername(username2);
+                UserEntity userEntity1 = userBean.convertToEntity(user1);
+                UserEntity userEntity2 = userBean.convertToEntity(user2);
+                List<MessageDto> messages = messageBean.getMessagesBetweenUsers(userEntity1, userEntity2);
+                return Response.status(200).entity(messages).build();
+        }
+    }
+
 
 }
