@@ -60,7 +60,7 @@ public class MessageEndpoint {
             messageBean.sendMessage(sender, receiver, messageDto.getMessage());
 
             // Enviar uma notificação para o destinatário
-            Notifier.sendNotification(messageDto.getReceiver(), "Você tem uma nova mensagem de " + messageDto.getSender());
+            Notifier.sendNotification(messageDto.getReceiver(), "New message from " + messageDto.getSender());
         } else {
             LOGGER.warning("Sender or receiver not found");
         }
