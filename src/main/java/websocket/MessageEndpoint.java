@@ -1,4 +1,5 @@
 package websocket;
+
 import bean.MessageBean;
 import bean.UserBean;
 import dao.MessageDao;
@@ -57,6 +58,9 @@ public class MessageEndpoint {
         // Verificar se o remetente e o destinatário existem
         if (sender != null && receiver != null) {
             messageBean.sendMessage(sender, receiver, messageDto.getMessage());
+
+            // Enviar uma notificação para o destinatário
+            Notifier.sendNotification(messageDto.getReceiver(), "Você tem uma nova mensagem de " + messageDto.getSender());
         } else {
             LOGGER.warning("Sender or receiver not found");
         }
