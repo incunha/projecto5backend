@@ -2,6 +2,7 @@ package websocket;
 
 import bean.MessageBean;
 import bean.UserBean;
+import bean.NotificationBean;
 import dao.MessageDao;
 import dao.UserDao;
 import dto.MessageDto;
@@ -30,6 +31,8 @@ public class MessageEndpoint {
     private UserBean userBean;
     @Inject
     private MessageBean messageBean;
+    @Inject
+    private NotificationBean notificationBean; // Injetar o NotificationBean
 
     private static final Logger LOGGER = Logger.getLogger(MessageEndpoint.class.getName());
     private static Map<String, Session> sessions = new ConcurrentHashMap<>();
@@ -61,6 +64,9 @@ public class MessageEndpoint {
 
             // Enviar uma notificação para o destinatário
             Notifier.sendNotification(messageDto.getReceiver(), "New message from " + messageDto.getSender());
+
+            // Persistir a notificação no banco de dados
+            notificationBean.sendNotification(sender, receiver, "New message from " + messageDto.getSender());
         } else {
             LOGGER.warning("Sender or receiver not found");
         }

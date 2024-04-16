@@ -7,6 +7,7 @@ import java.util.List;
 
 import bean.EmailBean;
 import bean.MessageBean;
+import bean.NotificationBean;
 import bean.UserBean;
 import dto.*;
 import entities.UserEntity;
@@ -32,6 +33,8 @@ public class UserService {
     EmailBean emailBean;
     @Inject
     MessageBean messageBean;
+    @Inject
+    NotificationBean notificationBean;
 
 
     @GET
@@ -294,6 +297,52 @@ public class UserService {
                 UserEntity userEntity2 = userBean.convertToEntity(user2);
                 List<MessageDto> messages = messageBean.getMessagesBetweenUsers(userEntity1, userEntity2);
                 return Response.status(200).entity(messages).build();
+        }
+    }
+
+    @GET
+    @Path("/notifications")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getNotifications(@HeaderParam("token") String token) {
+        boolean authorized = userBean.isUserAuthorized(token);
+        if (!authorized) {
+            return Response.status(403).entity("Forbidden").build();
+        } else {
+            User user = userBean.getUser(token);
+            UserEntity userEntity = userBean.convertToEntity(user);
+            List<NotificationDto> notifications = notificationBean.getNotificationsByUser(userEntity); // Aqui está a mudança
+            return Response.status(200).entity(notifications).build();
+        }
+    }
+
+
+    @PUT
+    @Path("/notifications/read")
+    public Response markAllNotificationsAsRead(@HeaderParam("token") String token) {
+        boolean authorized = userBean.isUserAuthorized(token);
+        if (!authorized) {
+            return Response.status(403).entity("Forbidden").build();
+        } else {
+            User user = userBean.getUser(token);
+            UserEntity userEntity = userBean.convertToEntity(user);
+            notificationBean.markAllNotificationsAsRead(userEntity);
+            return Response.status(200).build();
+        }
+    }
+
+    @GET
+    @Path("/notifications/unread")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getUnreadNotificationsCount(@HeaderParam("token") String token) {
+        boolean authorized = userBean.isUserAuthorized(token);
+        if (!authorized) {
+            return Response.status(403).entity("Forbidden").build();
+        } else {
+            User user = userBean.getUser(token);
+            UserEntity userEntity = userBean.convertToEntity(user);
+            List<NotificationDto> notifications = notificationBean.getNotificationsByUser(userEntity);
+            long unreadCount = notifications.stream().filter(notification -> !notification.isRead()).count();
+            return Response.status(200).entity(unreadCount).build();
         }
     }
 
