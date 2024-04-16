@@ -57,9 +57,15 @@ public class MessageBean {
     }
 
     // Método para marcar uma mensagem como lida
-    public void markMessageAsRead(MessageEntity message) {
-        message.setRead(true);
-        messageDao.update(message); // Atualiza a mensagem no banco de dados
+    public void markMessagesAsRead(UserEntity user1, UserEntity user2) {
+        List<MessageEntity> messageEntities = messageDao.findMessageByUser(user1, user2);
+
+        for (MessageEntity messageEntity : messageEntities) {
+            if (messageEntity.getReceiver().getUsername().equals(user1.getUsername()) && !messageEntity.isRead()) {
+                messageEntity.setRead(true);
+                messageDao.update(messageEntity);
+            }
+        }
     }
 
 }

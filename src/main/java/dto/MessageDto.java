@@ -52,4 +52,6 @@ public class MessageDto {
     public void setRead(boolean read) {
         this.read = read;
     }
+
+
 }

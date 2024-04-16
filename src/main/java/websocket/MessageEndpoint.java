@@ -16,6 +16,8 @@ import jakarta.websocket.Session;
 import jakarta.websocket.server.ServerEndpoint;
 import com.google.gson.Gson;
 import jakarta.websocket.server.PathParam;
+
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
@@ -73,11 +75,16 @@ public class MessageEndpoint {
         Session senderSession = sessions.get(messageDto.getSender());
         Session receiverSession = sessions.get(messageDto.getReceiver());
 
+        // Add a timestamp to the message
+        messageDto.setSendDate(LocalDateTime.now());
+        // Convert the message back to JSON
+        String messageWithTimestamp = gson.toJson(messageDto);
+
         if (senderSession != null && senderSession.isOpen()) {
-            senderSession.getAsyncRemote().sendText(message);
+            senderSession.getAsyncRemote().sendText(messageWithTimestamp);
         }
         if (receiverSession != null && receiverSession.isOpen()) {
-            receiverSession.getAsyncRemote().sendText(message);
+            receiverSession.getAsyncRemote().sendText(messageWithTimestamp);
         }
     }
 }

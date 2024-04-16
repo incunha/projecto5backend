@@ -296,6 +296,7 @@ public class UserService {
                 UserEntity userEntity1 = userBean.convertToEntity(user1);
                 UserEntity userEntity2 = userBean.convertToEntity(user2);
                 List<MessageDto> messages = messageBean.getMessagesBetweenUsers(userEntity1, userEntity2);
+                messageBean.markMessagesAsRead(userEntity1, userEntity2);
                 return Response.status(200).entity(messages).build();
         }
     }
