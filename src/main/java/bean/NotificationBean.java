@@ -18,11 +18,13 @@ public class NotificationBean {
 
     @EJB
     private NotificationDao notificationDao;
+    @EJB MessageBean messageBean;
 
     private static final Logger LOGGER = Logger.getLogger(NotificationBean.class.getName());
 
     public void sendNotification(UserEntity sender, UserEntity receiver, String notificationContent) {
         LOGGER.info("sendNotification method called");
+
         try {
             NotificationEntity notificationEntity = new NotificationEntity();
             notificationEntity.setSender(sender);

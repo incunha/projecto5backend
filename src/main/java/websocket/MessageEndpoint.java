@@ -37,7 +37,13 @@ public class MessageEndpoint {
     private NotificationBean notificationBean; // Injetar o NotificationBean
 
     private static final Logger LOGGER = Logger.getLogger(MessageEndpoint.class.getName());
+    // Existing private variable
     private static Map<String, Session> sessions = new ConcurrentHashMap<>();
+
+    // Add this getter method
+    public static Map<String, Session> getSessions() {
+        return sessions;
+    }
 
     @OnOpen
     public void onOpen(Session session, @PathParam("username") String username) {
@@ -64,27 +70,29 @@ public class MessageEndpoint {
         if (sender != null && receiver != null) {
             messageBean.sendMessage(sender, receiver, messageDto.getMessage());
 
-            // Enviar uma notificação para o destinatário
-            Notifier.sendNotification(messageDto.getReceiver(), "New message from " + messageDto.getSender());
+            if (messageBean.isReceiverloggedIn(receiver)) {
+                messageBean.markMessagesAsRead(sender, receiver);
+            } else {
+                // Enviar uma notificação para o destinatário
+                Notifier.sendNotification(messageDto.getReceiver(), "New message from " + messageDto.getSender());
 
-            // Persistir a notificação no banco de dados
-            notificationBean.sendNotification(sender, receiver, "New message from " + messageDto.getSender());
-        } else {
-            LOGGER.warning("Sender or receiver not found");
-        }
-        Session senderSession = sessions.get(messageDto.getSender());
-        Session receiverSession = sessions.get(messageDto.getReceiver());
+                // Persistir a notificação no banco de dados
+                notificationBean.sendNotification(sender, receiver, "New message from " + messageDto.getSender());
+            }
+            Session senderSession = sessions.get(messageDto.getSender());
+            Session receiverSession = sessions.get(messageDto.getReceiver());
 
-        // Add a timestamp to the message
-        messageDto.setSendDate(LocalDateTime.now());
-        // Convert the message back to JSON
-        String messageWithTimestamp = gson.toJson(messageDto);
+            // Add a timestamp to the message
+            messageDto.setSendDate(LocalDateTime.now());
+            // Convert the message back to JSON
+            String messageWithTimestamp = gson.toJson(messageDto);
 
-        if (senderSession != null && senderSession.isOpen()) {
-            senderSession.getAsyncRemote().sendText(messageWithTimestamp);
-        }
-        if (receiverSession != null && receiverSession.isOpen()) {
-            receiverSession.getAsyncRemote().sendText(messageWithTimestamp);
+            if (senderSession != null && senderSession.isOpen()) {
+                senderSession.getAsyncRemote().sendText(messageWithTimestamp);
+            }
+            if (receiverSession != null && receiverSession.isOpen()) {
+                receiverSession.getAsyncRemote().sendText(messageWithTimestamp);
+            }
         }
     }
 }
