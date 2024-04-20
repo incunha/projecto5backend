@@ -20,16 +20,7 @@ public class TaskDao extends AbstractDao<TaskEntity>{
     }
     private static final long serialVersionUID = 1L;
 
-    public TaskEntity findTaskById(int id) {
-        try {
-            return (TaskEntity) em.createNamedQuery("Task.findTaskById").setParameter("id", id)
-                    .getSingleResult();
 
-        } catch (NoResultException e) {
-            return null;
-        }
-
-    }
 
     public ArrayList<TaskEntity> findTaskByUser(UserEntity userEntity) {
         try {
@@ -86,7 +77,9 @@ public class TaskDao extends AbstractDao<TaskEntity>{
     public void updateTask(TaskEntity taskEntity) {
         em.merge(taskEntity);
     }
+
     public TaskEntity findTaskById(String id) {
+        System.out.println("id da task: " + id);
         try {
             return (TaskEntity) em.createNamedQuery("Task.findTaskById").setParameter("id", id)
                     .getSingleResult();
@@ -94,6 +87,8 @@ public class TaskDao extends AbstractDao<TaskEntity>{
             return null;
         }
     }
+
+
     public List<TaskEntity> findTasksByCategory(String category) {
         try {
            return  (List<TaskEntity>) em.createNamedQuery("Task.findTaskByCategory").setParameter("category", category).getResultList();

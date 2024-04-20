@@ -69,8 +69,9 @@ public class MessageBean {
         }
     }
 
-    public boolean isReceiverloggedIn(UserEntity receiver) {
+    public Session isReceiverloggedIn(UserEntity receiver, UserEntity sender) {
+        String conversationId = receiver.getToken() + sender.getUsername();
         Map<String, jakarta.websocket.Session> sessions = getSessions();
-        return sessions.containsKey(receiver.getUsername());
+        return sessions.get(conversationId);
     }
 }

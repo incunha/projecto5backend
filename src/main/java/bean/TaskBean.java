@@ -20,6 +20,7 @@ import jakarta.ejb.Singleton;
 import jakarta.ejb.Startup;
 import jakarta.ejb.Stateless;
 import org.apache.logging.log4j.LogManager;
+import static websocket.MessageEndpoint.getSessions;
 
 
 @Singleton
@@ -47,7 +48,6 @@ TaskBean {
 
 
     public ArrayList<Task> getFilteredTasks( Boolean active,String category,String username) {
-        System.out.println("username: " + username);
         ArrayList<Task> tasks = new ArrayList<>();
         List<TaskEntity> activeTasks = taskDao.findAllActiveTasks();
         List<TaskEntity> inactiveTasks = taskDao.findDeletedTasks();
@@ -133,20 +133,7 @@ TaskBean {
         taskEntity.setUser(taskDao.findTaskById(task.getId()).getUser());
         return taskEntity;
     }
-    public TaskEntity createTaskEntity(dto.Task task, String username) {
-        TaskEntity taskEntity = new TaskEntity();
-        taskEntity.setId(task.getId());
-        taskEntity.setTitle(task.getTitle());
-        taskEntity.setDescription(task.getDescription());
-        taskEntity.setStatus(task.getStatus());
-        taskEntity.setCategory(taskDao.findCategoryByName(task.getCategory()));
-        taskEntity.setStartDate(task.getStartDate());
-        taskEntity.setPriority(task.getPriority());
-        taskEntity.setEndDate(task.getEndDate());
-        taskEntity.setUser(userDao.findUserByUsername(username));
-        taskEntity.setActive(true);
-        return taskEntity;
-    }
+
     public TaskEntity createTaskEntity(dto.Task task, UserEntity userEntity) {
         TaskEntity taskEntity = new TaskEntity();
         taskEntity.setId(task.getId());
@@ -219,6 +206,7 @@ TaskBean {
         return tasks;
     }
     public Task findTaskById(String id) {
+        System.out.println("AQUI" + id);
         return convertToDto(taskDao.findTaskById(id));
     }
     public TaskCreator findUserById(String id) {
@@ -269,6 +257,7 @@ TaskBean {
     public CategoryEntity findCategoryById(int id) {
         return taskDao.findCategoryById(id);
     }
+
     public boolean blockTask(String id,String role) {
         TaskEntity a = taskDao.findTaskById(id);
         if (a != null) {
@@ -282,14 +271,7 @@ TaskBean {
         }
         return false;
     }
-    public boolean removeTask(String id) {
-        TaskEntity a = taskDao.findTaskById(id);
-        if (a != null) {
-            taskDao.remove(a);
-            return true;
-        }
-        return false;
-    }
+
 
     public ArrayList<Task> getAllActiveTasks (){
         ArrayList<Task> activeTasks= new ArrayList<>();

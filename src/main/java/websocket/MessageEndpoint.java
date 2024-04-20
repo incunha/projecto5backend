@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import java.util.ArrayList;
 
-@ServerEndpoint("/chat/{username}")
+@ServerEndpoint("/chat/{token}/{username}")
 public class MessageEndpoint {
     @Inject
     private MessageDao messageDao;
@@ -45,14 +45,29 @@ public class MessageEndpoint {
         return sessions;
     }
 
+    public void send(String message, String token, String username) {
+        String conversationId = token + username;
+        Session session = sessions.get(conversationId);
+        if (session != null && session.isOpen()) {
+            session.getAsyncRemote().sendText(message);
+        }
+    }
+
     @OnOpen
-    public void onOpen(Session session, @PathParam("username") String username) {
-        sessions.put(username, session);
+    public void onOpen(Session session, @PathParam("token") String token, @PathParam("username") String username) {
+        String conversationId = token + username;
+        System.out.println("Conversation ID: " + conversationId);
+        sessions.put(conversationId, session);
+
+        LOGGER.info("Session opened and added to sessions map." + conversationId);
+
     }
 
     @OnClose
-    public void onClose(Session session, @PathParam("username") String username) {
-        sessions.remove(username);
+    public void onClose(Session session, @PathParam("token") String token, @PathParam("username") String username) {
+        String conversationId = token + username;
+        sessions.remove(conversationId);
+        LOGGER.info("Session closed and removed from sessions map." + conversationId);
     }
 
     @OnMessage
@@ -64,34 +79,26 @@ public class MessageEndpoint {
 
         // Buscar UserEntity para o remetente e o destinatário
         UserEntity sender = userDao.findUserByUsername(messageDto.getSender());
+        System.out.println("Sender: " + sender.getUsername());
         UserEntity receiver = userDao.findUserByUsername(messageDto.getReceiver());
+        System.out.println("Receiver: " + receiver.getUsername());
 
         // Verificar se o remetente e o destinatário existem
         if (sender != null && receiver != null) {
             messageBean.sendMessage(sender, receiver, messageDto.getMessage());
 
-            if (messageBean.isReceiverloggedIn(receiver)) {
+            // Enviar a mensagem para o remetente independentemente do estado de login do destinatário
+            send(gson.toJson(messageDto), sender.getToken(), messageDto.getReceiver());
+
+            if (messageBean.isReceiverloggedIn(receiver, sender) != null) {
                 messageBean.markMessagesAsRead(sender, receiver);
+                send(gson.toJson(messageDto), receiver.getToken(), messageDto.getSender());
             } else {
                 // Enviar uma notificação para o destinatário
                 Notifier.sendNotification(messageDto.getReceiver(), "New message from " + messageDto.getSender());
 
                 // Persistir a notificação no banco de dados
                 notificationBean.sendNotification(sender, receiver, "New message from " + messageDto.getSender());
-            }
-            Session senderSession = sessions.get(messageDto.getSender());
-            Session receiverSession = sessions.get(messageDto.getReceiver());
-
-            // Add a timestamp to the message
-            messageDto.setSendDate(LocalDateTime.now());
-            // Convert the message back to JSON
-            String messageWithTimestamp = gson.toJson(messageDto);
-
-            if (senderSession != null && senderSession.isOpen()) {
-                senderSession.getAsyncRemote().sendText(messageWithTimestamp);
-            }
-            if (receiverSession != null && receiverSession.isOpen()) {
-                receiverSession.getAsyncRemote().sendText(messageWithTimestamp);
             }
         }
     }

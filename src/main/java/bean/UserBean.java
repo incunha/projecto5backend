@@ -482,7 +482,6 @@ public boolean findOtherUserByUsername(String username) {
 
     public ArrayList<Integer> getTaskTotals (String username, int todo, int doing, int done) {
         UserEntity user = userDao.findUserByUsername(username);
-        System.out.println("OLHA AQUI" + username);
         ArrayList<Integer> taskTotals = new ArrayList<>();
         taskTotals.add(taskDao.findTotalActiveTasks(user) );
         taskTotals.add(taskDao.findActiveTasksByStatusAndUser(user,todo));
