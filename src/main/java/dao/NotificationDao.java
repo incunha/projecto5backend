@@ -50,4 +50,17 @@ public class NotificationDao extends AbstractDao<NotificationEntity> {
         }
     }
 
+    public ArrayList<NotificationEntity> findNotificationsByUsername(String username) {
+        try {
+            ArrayList<NotificationEntity> notificationEntities = (ArrayList<NotificationEntity>) em.createNamedQuery("Notification.findNotificationsByUsername").setParameter("username", username).getResultList();
+            return notificationEntities;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public void deleteNotification(NotificationEntity notificationEntity) {
+        em.remove(notificationEntity);
+    }
+
 }

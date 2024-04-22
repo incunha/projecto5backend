@@ -81,4 +81,20 @@ public class EmailBean {
         }
         return sent;
     }
+
+    public boolean sendPasswordRecoverEmail(User user, String confirmationToken, LocalDateTime creationDate) {
+        boolean sent = false;
+
+        String userEmail = user.getEmail();
+        String subject = "Scrum - Password Recovery";
+        String recuperationLink = "http://localhost:5173/recover-password?token=" + confirmationToken;
+        String body = "Dear " + user.getName() + ",\n\n"
+                + "You have requested to recover your password. Please click on the link below to reset your password.\n\n"
+                + "Password Recovery Link: " + recuperationLink;
+
+        if (sendEmail(userEmail, subject, body)) {
+            sent = true;
+        }
+        return sent;
+    }
 }

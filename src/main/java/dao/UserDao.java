@@ -28,6 +28,16 @@ public class UserDao extends AbstractDao<UserEntity> {
         }
     }
 
+    public UserEntity findUserByEmail(String email) {
+        try {
+            return (UserEntity) em.createNamedQuery("User.findUserByEmail").setParameter("email", email)
+                    .getSingleResult();
+
+        } catch (NoResultException e) {
+            return null;
+        }
+    }
+
     public UserEntity findUserByUsername(String username) {
         try {
             return (UserEntity) em.createNamedQuery("User.findUserByUsername").setParameter("username", username)
@@ -47,6 +57,7 @@ public class UserDao extends AbstractDao<UserEntity> {
             return null;
         }
     }
+
 
     public List<UserEntity> getUsersByRole(String role, Boolean active) {
         return em.createNamedQuery("User.findUserByRole").setParameter("role", role).setParameter("active", active).getResultList();

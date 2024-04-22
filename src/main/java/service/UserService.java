@@ -92,12 +92,52 @@ public class UserService {
         if (!valid) {
             return Response.status(400).entity("All elements are required").build();
         } else {
+            if (a.isConfirmed()){
+                return Response.status(400).entity("User already confirmed").build();
+            } else {
                 userBean.confirmUser(confirmationToken, password.getPassword());
                 userBean.deleteConfirmationToken(a);
                 return Response.status(200).entity("User confirmed").build();
             }
         }
+    }
 
+        @PATCH
+        @Path("/forgotPassword/{email}")
+        @Consumes(MediaType.APPLICATION_JSON)
+        public Response recoverPassword (@PathParam("email") String email) {
+            User a = userBean.getUserByEmail(email);
+            if (a == null) {
+                return Response.status(404).entity("User with this email is not found").build();
+            } else if (!a.isActive()) {
+                return Response.status(403).entity("User is not active").build();
+            } else {
+                String confirmationToken = userBean.generateConfirmationToken();
+                a.setConfirmationToken(confirmationToken);
+                userBean.updateUserEntity(a);
+                emailBean.sendPasswordRecoverEmail(a, confirmationToken, LocalDateTime.now());
+                return Response.status(200).entity("Password recovery email sent").build();
+            }
+        }
+
+    @PATCH
+    @Path("/setPassword/{confirmationToken}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response setPassword (@PathParam("confirmationToken") String confirmationToken, PasswordDto password) {
+
+        User a = userBean.getUserByConfirmationToken(confirmationToken);
+        if (a == null) {
+            return Response.status(404).entity("User with this confirmation token is not found").build();
+        }
+        boolean valid = userBean.isUserValid(a);
+        if (!valid) {
+            return Response.status(400).entity("All elements are required").build();
+        } else {
+              userBean.recoverPassword(confirmationToken, password.getPassword());
+              userBean.deleteConfirmationToken(a);
+                return Response.status(200).entity("Password set").build();
+        }
+    }
 
 
 

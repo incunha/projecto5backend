@@ -9,11 +9,13 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import dao.NotificationDao;
 import dao.TaskDao;
 import dao.UserDao;
 import dto.PasswordDto;
 import dto.Task;
 import dto.UserDto;
+import entities.NotificationEntity;
 import entities.TaskEntity;
 import entities.UserEntity;
 import jakarta.ejb.EJB;
@@ -50,6 +52,8 @@ public class UserBean {
     EncryptHelper EncryptHelper;
     @EJB
     EmailBean emailBean;
+    @EJB
+    NotificationDao NotificationDao;
 
     public void addUser(User a) {
 
@@ -66,6 +70,14 @@ public class UserBean {
 
     }
 
+    public void recoverPassword ( String confirmationToken, String password) {
+        UserEntity userEntity = userDao.findUserByConfirmationToken(confirmationToken);
+        if (userEntity.isConfirmed()) {
+            userEntity.setPassword(EncryptHelper.encryptPassword(password));
+            userDao.updateUser(userEntity);
+        }
+    }
+
     public void deleteConfirmationToken(User a) {
         UserEntity userEntity = userDao.findUserByUsername(a.getUsername());
         userEntity.setConfirmationToken(null);
@@ -74,6 +86,13 @@ public class UserBean {
 
     public User getUserByConfirmationToken(String confirmationToken) {
         UserEntity userEntity = userDao.findUserByConfirmationToken(confirmationToken);
+        System.out.println(userEntity.getUsername());
+        return convertToDto(userEntity);
+    }
+
+
+    public User getUserByEmail(String email) {
+        UserEntity userEntity = userDao.findUserByEmail(email);
         return convertToDto(userEntity);
     }
 
@@ -125,6 +144,12 @@ public class UserBean {
             return true;
         }
         return false;
+    }
+
+    public boolean updateUserEntity(User user) {
+        UserEntity user1 = convertToEntity(user);
+        userDao.updateUser(user1);
+        return true;
     }
 
     public boolean updateUser(String token, User user) {
@@ -250,6 +275,8 @@ public boolean findOtherUserByUsername(String username) {
         userEntity.setToken(user.getToken());
         userEntity.setRole(user.getRole());
         userEntity.setActive(user.isActive());
+        userEntity.setConfirmed(user.isConfirmed());
+        System.out.println("Confirmaçao " + user.isConfirmed());
         userEntity.setConfirmationToken(user.getConfirmationToken());
         return userEntity;
     }
@@ -265,6 +292,7 @@ public boolean findOtherUserByUsername(String username) {
         user.setToken(userEntity.getToken());
         user.setRole(userEntity.getRole());
         user.setActive(userEntity.isActive());
+        user.setConfirmed(userEntity.isConfirmed());
         return user;
     }
 
@@ -312,6 +340,17 @@ public boolean findOtherUserByUsername(String username) {
                     taskDao.updateTask(task);
                 }
             }
+            ArrayList <MessageEntity> messages = MessageDao.findMessagesByUsername(user.getUsername());
+            ArrayList <NotificationEntity> notifications = NotificationDao.findNotificationsByUsername(user.getUsername());
+            if(messages != null || notifications != null){
+                for (MessageEntity message : messages) {
+                    MessageDao.deleteMessage( message);
+                }
+                for (NotificationEntity notification : notifications) {
+                    NotificationDao.deleteNotification(notification);
+                }
+            }
+
             userDao.remove(user);
             return true;
         }

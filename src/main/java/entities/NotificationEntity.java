@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 @Table(name="Notifications")
 @NamedQuery(name="Notification.findNotificationsByReceiver", query="SELECT a FROM NotificationEntity a WHERE a.receiver = :receiver order by a.timestamp desc")
 @NamedQuery(name="Notification.totalUnreadNotifications", query="SELECT COUNT (a) FROM NotificationEntity a WHERE a.receiver = :receiver and a.read = false")
+@NamedQuery(name="Notification.findNotificationsByUsername", query="SELECT a FROM NotificationEntity a WHERE a.receiver.username = :username OR a.sender.username = :username")
 public class NotificationEntity implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

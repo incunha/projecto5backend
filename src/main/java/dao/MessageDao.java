@@ -48,5 +48,16 @@ public class MessageDao extends AbstractDao<MessageEntity>{
     public void update(MessageEntity messageEntity) {
         em.merge(messageEntity);
     }
+    public ArrayList<MessageEntity> findMessagesByUsername(String username) {
+        try {
+            ArrayList<MessageEntity> messageEntities = (ArrayList<MessageEntity>) em.createNamedQuery("Message.findMessagesByUsername").setParameter("username", username).getResultList();
+            return messageEntities;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+    public void deleteMessage(MessageEntity messageEntity) {
+        em.remove(messageEntity);
+    }
 
 }
