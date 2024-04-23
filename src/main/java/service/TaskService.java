@@ -2,10 +2,7 @@ package service;
 
 import bean.TaskBean;
 import bean.UserBean;
-import dto.Category;
-import dto.Task;
-import dto.TaskCreator;
-import dto.User;
+import dto.*;
 import entities.TaskEntity;
 import entities.UserEntity;
 import entities.CategoryEntity;
@@ -285,6 +282,19 @@ public class TaskService {
         } else {
             TaskCreator creator = taskBean.findUserById(id);
             return Response.status(200).entity(creator).build();
+        }
+    }
+
+    @GET
+    @Path("/statistics")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getStatistics(@HeaderParam("token") String token) {
+        boolean authorized = userBean.isUserAuthorized(token);
+        if (!authorized) {
+            return Response.status(401).entity("Unauthorized").build();
+        } else {
+            TasksStatisticsDto statistics = taskBean.getTasksStatistics();
+            return Response.status(200).entity(statistics).build();
         }
     }
 

@@ -2,6 +2,8 @@ package dto;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -9,20 +11,17 @@ import java.util.Iterator;
 @XmlRootElement
 public class User {
     String username;
-
     String name;
-
     String email;
-
     String password;
     String contactNumber;
     String role;
     String userPhoto;
     String token;
     String confirmationToken;
-
     boolean active = true;
     boolean confirmed = false;
+    LocalDate dateCreated = LocalDate.now();
 
     public User() {
     }
@@ -42,9 +41,8 @@ public class User {
         }
         this.active = true;
         this.confirmed = false;
+        this.dateCreated = LocalDate.now();
     }
-
-
 
     @XmlElement
     public String getName() {
@@ -86,20 +84,25 @@ public class User {
     public String getContactNumber() {
         return contactNumber;
     }
+
     public void setContactNumber(String contactNumber) {
         this.contactNumber = contactNumber;
     }
+
     public void setUserPhoto(String userPhoto){
         this.userPhoto = userPhoto;
     }
+
     @XmlElement
     public String getUserPhoto(){
         return userPhoto;
     }
+
     @XmlElement
     public String getRole() {
         return role;
     }
+
     public void setRole(String role) {
         this.role = role;
     }
@@ -112,13 +115,16 @@ public class User {
     public void setToken(String token) {
         this.token = token;
     }
+
     @XmlElement
     public boolean isActive() {
         return active;
     }
+
     public void setActive(boolean active) {
         this.active = active;
     }
+
     @XmlElement
     public boolean isConfirmed() { return confirmed; }
 
@@ -131,6 +137,15 @@ public class User {
 
     public void setConfirmationToken(String confirmationToken) {
         this.confirmationToken = confirmationToken;
+    }
+
+    @XmlElement
+    public LocalDate getDateCreated() {
+        return dateCreated;
+    }
+
+    public void setDateCreated(LocalDate dateCreated) {
+        this.dateCreated = dateCreated;
     }
 
 

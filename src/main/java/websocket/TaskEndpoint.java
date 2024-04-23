@@ -7,6 +7,8 @@ import jakarta.websocket.OnOpen;
 import jakarta.websocket.OnClose;
 import jakarta.websocket.Session;
 import jakarta.websocket.OnMessage;
+
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
@@ -23,7 +25,6 @@ public class TaskEndpoint {
     private TaskBean taskBean;
     @Inject
     private UserBean userBean;
-
 
 
     private static final Logger LOGGER = Logger.getLogger(TaskEndpoint.class.getName());
@@ -45,34 +46,22 @@ public class TaskEndpoint {
     }
 
     @OnMessage
-    public void onMessage(String message, Session session) {
-        System.out.println("Message received: " + message);
-        LOGGER.info("Processing message from " + session.getId());
-        Gson gson = new Gson();
-        Task task = taskBean.findTaskById(gson.fromJson(message, String.class));
-
-        if(task == null) {
-            TaskWebsocketDto taskWebsocketDto = new TaskWebsocketDto();
-            taskWebsocketDto.setTaskId(message);
-            session.getAsyncRemote().sendObject(gson.toJson(task));
-            for (Session s : sessions.values()) {
-                s.getAsyncRemote().sendObject(gson.toJson(task));
-            }
-        } else {
-            TaskWebsocketDto taskWebsocketDto = new TaskWebsocketDto();
-            taskWebsocketDto.setTask(task);
-            taskWebsocketDto.setTaskId(message);
-            session.getAsyncRemote().sendObject(gson.toJson(task));
-            for (Session s : sessions.values()) {
-                s.getAsyncRemote().sendObject(gson.toJson(task));
-            }
-        }
+    public void onMessage(Session session, String msg) {
+        System.out.println("Message received: " + msg);
     }
 
 
-    public void sendTask(String taskId) {
-        for (Session session : sessions.values()) {
-            session.getAsyncRemote().sendObject(taskId);
-        }
+    public void send(TaskWebsocketDto taskWebsocketDto) {
+        sessions.values().forEach(session -> {
+            try {
+                Gson gson = new Gson();
+                String msg = gson.toJson(taskWebsocketDto);
+
+                session.getBasicRemote().sendText(msg);
+            } catch (IOException e) {
+                System.out.println("Error in sending message to session " + session.getId() + ": " + e.getMessage());
+            }
+        });
     }
+
 }

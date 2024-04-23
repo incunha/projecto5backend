@@ -387,5 +387,18 @@ public class UserService {
         }
     }
 
+    @GET
+    @Path("/statistics")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getStatistics(@HeaderParam("token") String token) {
+        boolean authorized = userBean.isUserAuthorized(token);
+        if (!authorized) {
+            return Response.status(403).entity("Forbidden").build();
+        } else {
+            UserStatisticsDto userStatistics = userBean.getStatistics();
+            return Response.status(200).entity(userStatistics).build();
+        }
+    }
+
 
 }

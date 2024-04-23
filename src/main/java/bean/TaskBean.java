@@ -1,18 +1,15 @@
 package bean;
-import dto.Category;
-import dto.TaskCreator;
+import dto.*;
 import entities.UserEntity;
 import entities.CategoryEntity;
 import entities.TaskEntity;
-
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-
 import dao.TaskDao;
 import dao.UserDao;
 import bean.UserBean;
-import dto.Task;
 import entities.CategoryEntity;
 import entities.TaskEntity;
 import jakarta.ejb.EJB;
@@ -38,6 +35,7 @@ TaskBean {
     public TaskBean(TaskDao taskDao) {
         this.taskDao = taskDao;
     }
+
     public boolean isTaskValid(Task task) {
         if (task.getTitle().isBlank() || task.getDescription().isBlank() || task.getStartDate() == null || task.getEndDate() == null || task.getCategory() == null) {
             return false;
@@ -148,6 +146,7 @@ TaskBean {
         taskEntity.setActive(true);
         return taskEntity;
     }
+
     public boolean restoreTask(String id) {
         TaskEntity a = taskDao.findTaskById(id);
         if (a != null) {
@@ -157,6 +156,7 @@ TaskBean {
         }
         return false;
     }
+
     public CategoryEntity convertCatToEntity(Category category) {
         CategoryEntity categoryEntity= taskDao.findCategoryById(category.getId());
         categoryEntity.setName(category.getName());
@@ -168,6 +168,7 @@ TaskBean {
         category.setName(categoryEntity.getName());
         return category;
     }
+
     public dto.Task convertToDto(TaskEntity taskEntity) {
         dto.Task task = new dto.Task();
         task.setId(taskEntity.getId());
@@ -184,13 +185,17 @@ TaskBean {
 
     public void addTask(TaskEntity taskEntity) {
         taskDao.createTask(taskEntity);
+        
+
     }
     public List<TaskEntity> getTasks() {
         return taskDao.findAll();
     }
+
     public  List<TaskEntity> getTasksByUser(UserEntity userEntity) {
         return taskDao.findTasksByUser(userEntity);
     }
+
     public boolean deleteAllTasksByUser(UserEntity userEntity) {
         List<TaskEntity> tasks = taskDao.findTasksByUser(userEntity);
         for(TaskEntity task: tasks){
@@ -198,6 +203,7 @@ TaskBean {
         }
         return true;
     }
+
     public List<Task> convertToDtoList(List<TaskEntity> taskEntities) {
         List<Task> tasks = new ArrayList<>();
         for (TaskEntity taskEntity : taskEntities) {
@@ -206,9 +212,9 @@ TaskBean {
         return tasks;
     }
     public Task findTaskById(String id) {
-        System.out.println("AQUI" + id);
         return convertToDto(taskDao.findTaskById(id));
     }
+
     public TaskCreator findUserById(String id) {
     TaskEntity taskEntity = taskDao.findTaskById(id);
         TaskCreator taskCreator = new TaskCreator();
@@ -216,12 +222,14 @@ TaskBean {
         taskCreator.setName(taskEntity.getUser().getName());
         return taskCreator;
     }
+
     public boolean categoryExists(String name) {
         if(taskDao.findCategoryByName(name) != null) {
             return true;
         }
         return false;
     }
+
     public boolean updateCategory(CategoryEntity categoryEntity) {
         CategoryEntity a = taskDao.findCategoryById(categoryEntity.getId());
         if (a != null) {
@@ -231,12 +239,14 @@ TaskBean {
         }
         return false;
     }
+
     public void createCategory(String name, String creator) {
         CategoryEntity categoryEntity = new CategoryEntity();
         categoryEntity.setName(name);
         categoryEntity.setCreator(creator);
         taskDao.createCategory(categoryEntity);
     }
+
     public boolean removeCategory(String name) {
         List<TaskEntity> tasks = taskDao.findAll();
         List<TaskEntity> tasksByCategory = new ArrayList<>();
@@ -254,6 +264,7 @@ TaskBean {
     public CategoryEntity findCategoryByName(String name) {
         return taskDao.findCategoryByName(name);
     }
+
     public CategoryEntity findCategoryById(int id) {
         return taskDao.findCategoryById(id);
     }
@@ -307,27 +318,43 @@ TaskBean {
         }
         return false;
     }
+
     public boolean changeStatus(String id, int status) {
         TaskEntity a = taskDao.findTaskById(id);
         if (a != null) {
+            if(a.getStatus() == 30){
+                a.setConclusionDate(null);
+            }
             a.setStatus(status);
+            if(status == 30){
+                a.setConclusionDate(LocalDate.now());
+            }
+            if(status == 20 && a.getDoingDate() == null){
+                a.setDoingDate(LocalDate.now());
+            }
             taskDao.updateTask(a);
             return true;
+
         }
         return false;
     }
+
     public List<CategoryEntity> getAllCategories() {
         return taskDao.findAllCategories();
     }
+
     public void setTaskDao(TaskDao taskDao) {
         this.taskDao = taskDao;
     }
+
     public void setUserDao(UserDao userDao) {
         this.userDao = userDao;
     }
+
     public void setInitialId(Task task){
         task.setId("Task" + System.currentTimeMillis());}
-public void createDefaultCategories(){
+
+    public void createDefaultCategories(){
         if(taskDao.findCategoryByName("Testing") == null){
             CategoryEntity categoryEntity = new CategoryEntity();
             categoryEntity.setName("Testing");
@@ -391,5 +418,55 @@ public void createDefaultCategories(){
         taskDao.createTask(taskEntity);
     }
 }
+
+    public TasksStatisticsDto getTasksStatistics() {
+        TasksStatisticsDto taskStatisticsDto = new TasksStatisticsDto();
+        taskStatisticsDto.setTotaDoneTasks(taskDao.findTasksByStatus(30).toArray().length);
+        taskStatisticsDto.setTotalTasks(taskDao.findAll().size());
+        taskStatisticsDto.setTotalDoingTasks(taskDao.findTasksByStatus(20).toArray().length);
+        taskStatisticsDto.setTotalToDoTasks(taskDao.findTasksByStatus(10).toArray().length);
+        taskStatisticsDto.setAverageTaskTime(getAverageTaskTime());
+        taskStatisticsDto.setAverageTasksPerUser(averageTasksPerUser());
+        taskStatisticsDto.setTasksByCategory(getTasksByCategory());
+        taskStatisticsDto.setTasksCompletedByDate(taskDao.getTasksCompletedByDate());
+        return taskStatisticsDto;
+    }
+
+    public HashMap<String,Long> getTasksByCategory() {
+        HashMap <String,Long> tasksByCategory = taskDao.getTaskCountByCategory();
+
+        return tasksByCategory;
+    }
+
+    public int getAverageTaskTime() {
+        List<TaskEntity> tasks = taskDao.findAll();
+        int total = 0;
+        int count = 0;
+        for (TaskEntity task : tasks) {
+            if (task.getConclusionDate() != null) {
+                if (task.getDoingDate() == null) {
+                    total += task.getStartDate().until(task.getConclusionDate()).getDays();
+                    count++;
+                }else{
+                    total += task.getDoingDate().until(task.getConclusionDate()).getDays();
+                    count++;
+                }
+            }
+        }
+        if (count == 0) {
+            return 0;
+        }
+        return total / count;
+    }
+
+    public double averageTasksPerUser() {
+        List<UserEntity> users = userDao.findAll();
+        List<TaskEntity> tasks = taskDao.findAll();
+        return tasks.size() / users.size();
+    }
+
+
+
+
 }
 

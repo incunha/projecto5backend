@@ -8,13 +8,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import dao.NotificationDao;
 import dao.TaskDao;
 import dao.UserDao;
-import dto.PasswordDto;
-import dto.Task;
-import dto.UserDto;
+import dto.*;
 import entities.NotificationEntity;
 import entities.TaskEntity;
 import entities.UserEntity;
@@ -23,14 +23,12 @@ import jakarta.ejb.Singleton;
 import jakarta.ejb.Startup;
 import jakarta.ejb.Stateless;
 import jakarta.enterprise.context.ApplicationScoped;
-import dto.User;
 import jakarta.jms.Message;
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
 import jakarta.json.bind.JsonbConfig;
 import jakarta.security.enterprise.credential.Password;
 import utilities.EncryptHelper;
-import dto.MessageDto;
 import entities.MessageEntity;
 import dao.MessageDao;
 
@@ -276,7 +274,7 @@ public boolean findOtherUserByUsername(String username) {
         userEntity.setRole(user.getRole());
         userEntity.setActive(user.isActive());
         userEntity.setConfirmed(user.isConfirmed());
-        System.out.println("Confirmaçao " + user.isConfirmed());
+        userEntity.setDateCreated(user.getDateCreated());
         userEntity.setConfirmationToken(user.getConfirmationToken());
         return userEntity;
     }
@@ -413,6 +411,7 @@ public boolean findOtherUserByUsername(String username) {
             userEntity.setRole("Owner");
             userEntity.setActive(true);
             userEntity.setConfirmed(true);
+            userEntity.setDateCreated(LocalDate.now());
             userDao.persist(userEntity);
         }
         if(userDao.findUserByUsername("deleted") == null) {
@@ -427,6 +426,7 @@ public boolean findOtherUserByUsername(String username) {
             userEntity1.setRole("developer");
             userEntity1.setActive(true);
             userEntity1.setConfirmed(true);
+            userEntity1.setDateCreated(LocalDate.now());
             userDao.persist(userEntity1);
         }
     }
@@ -527,6 +527,25 @@ public boolean findOtherUserByUsername(String username) {
         taskTotals.add(taskDao.findActiveTasksByStatusAndUser(user,doing));
         taskTotals.add(taskDao.findActiveTasksByStatusAndUser(user,done));
         return taskTotals;
+    }
+
+    public UserStatisticsDto getStatistics() {
+        UserStatisticsDto statisticsDto = new UserStatisticsDto();
+        statisticsDto.setTotalUsers(userDao.findAll().size());
+        statisticsDto.setTotalConfirmedusers(userDao.getActiveUsers().size());
+        statisticsDto.setTotalBlockedUsers(userDao.getDeletedUsers().size());
+        statisticsDto.setTotalUnconfirmedUsers(userDao.getUnconfirmedUsers());
+        statisticsDto.setConfirmedUsersByDate(countConfirmedUsersByDate());
+        return statisticsDto;
+    }
+
+    public Map<LocalDate, Long> countConfirmedUsersByDate() {
+        List<Object[]> results = userDao.countConfirmedUsersByDate();
+        return results.stream()
+                .collect(Collectors.toMap(
+                        result -> (LocalDate) result[0],
+                        result -> (Long) result[1]
+                ));
     }
 
 }

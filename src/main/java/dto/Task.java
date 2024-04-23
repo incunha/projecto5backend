@@ -40,6 +40,7 @@ public class Task {
     public void setId(String id) {
         this.id = id;
     }
+
     @XmlElement
     public String getTitle() {
         return title;
@@ -47,6 +48,7 @@ public class Task {
     public void setTitle(String title) {
         this.title = title;
     }
+
     @XmlElement
     public String getDescription() {
         return description;
@@ -54,6 +56,7 @@ public class Task {
     public void setDescription(String description) {
         this.description = description;
     }
+
     @XmlElement
     public int getStatus() {
         return status;
@@ -61,6 +64,7 @@ public class Task {
     public void setStatus(int status) {
         this.status = status;
     }
+
     @XmlElement
     public int getPriority() {
         return priority;
@@ -68,11 +72,13 @@ public class Task {
     public void setPriority(int priority) {
         this.priority = priority;
     }
+
     @XmlElement
     public LocalDate getStartDate() {
         return startDate;
     }
     public void setStartDate(LocalDate startDate) {this.startDate = startDate;}
+
     @XmlElement
     public LocalDate getEndDate() {
         return endDate;
@@ -83,14 +89,13 @@ public class Task {
     public void setInitialId(){
         this.id = "Task" + System.currentTimeMillis();
     }
-
     public String getCategory() {
         return category;
     }
-
     public void setCategory(String category) {
         this.category = category;
     }
+
     @XmlElement
     public boolean isActive() {
         return active;

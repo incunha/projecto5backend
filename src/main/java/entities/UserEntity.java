@@ -1,6 +1,8 @@
 package entities;
 
 import java.io.Serializable;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import jakarta.persistence.*;
 @Entity
@@ -14,7 +16,8 @@ import jakarta.persistence.*;
 @NamedQuery(name = "User.updateToken", query = "UPDATE UserEntity u SET u.token = :token WHERE u.username = :username AND u.confirmed = true")
 @NamedQuery(name = "User.findUserByConfirmationToken", query = "SELECT u FROM UserEntity u WHERE u.confirmationToken = :confirmationToken")
 @NamedQuery(name = "User.findUserByEmail", query = "SELECT u FROM UserEntity u WHERE u.email = :email AND u.confirmed = true")
-
+@NamedQuery(name = "User.findAllUnconfirmedUsers", query = "SELECT u FROM UserEntity u WHERE u.confirmed = false")
+@NamedQuery(name = "User.countConfirmedUsersByDate", query = "SELECT u.dateCreated, COUNT(u) FROM UserEntity u WHERE u.confirmed = true GROUP BY u.dateCreated")
 public class UserEntity implements Serializable{
     @Id
     @Column (name="id", nullable = false, unique = true, updatable = false)
@@ -38,7 +41,10 @@ public class UserEntity implements Serializable{
     @Column (name="confirmed", nullable = false, unique = false)
     boolean confirmed;
     @Column(name="confirmationToken", nullable=true, unique=true)
-    private String confirmationToken;
+    String confirmationToken;
+    @Column(name="dateCreated", nullable=true, unique=false)
+    LocalDate dateCreated;
+
 
     public String getUsername() {
         return username;
@@ -95,27 +101,40 @@ public class UserEntity implements Serializable{
     public void setToken(String token) {
         this.token = token;
     }
+
     public String getRole() {
         return role;
     }
+
     public void setRole(String role) {
         this.role = role;
     }
+
     public boolean isActive() {
         return active;
     }
+
     public void setActive(boolean active) {
         this.active = active;
     }
 
     public boolean isConfirmed() { return confirmed; }
+
     public void setConfirmed(boolean confirmed) { this.confirmed = confirmed; }
 
     public String getConfirmationToken() {
         return confirmationToken;
     }
+
     public void setConfirmationToken(String confirmationToken) {
         this.confirmationToken = confirmationToken;
     }
-}
 
+    public LocalDateTime getDateCreated() {
+        return dateCreated.atStartOfDay();
+    }
+
+    public void setDateCreated(LocalDate dateCreated) {
+        this.dateCreated = dateCreated;
+    }
+}
