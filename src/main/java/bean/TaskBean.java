@@ -9,6 +9,9 @@ import java.util.HashMap;
 import java.util.List;
 import dao.TaskDao;
 import dao.UserDao;
+import jakarta.inject.Inject;
+import websocket.Dashboard;
+import websocket.TaskEndpoint;
 import bean.UserBean;
 import entities.CategoryEntity;
 import entities.TaskEntity;
@@ -21,7 +24,6 @@ import static websocket.MessageEndpoint.getSessions;
 
 
 @Singleton
-
 public class
 TaskBean {
     private static final org.apache.logging.log4j.Logger logger = LogManager.getLogger(TaskBean.class);
@@ -31,6 +33,10 @@ TaskBean {
     TaskDao taskDao;
     @EJB
     UserDao userDao;
+    @EJB
+    Dashboard dashboard;
+    @Inject
+    TaskEndpoint tasks;
 
     public TaskBean(TaskDao taskDao) {
         this.taskDao = taskDao;
@@ -185,9 +191,20 @@ TaskBean {
 
     public void addTask(TaskEntity taskEntity) {
         taskDao.createTask(taskEntity);
-        
-
+        dashboard.send("ping");
+        TaskWebsocketDto taskSocketDto = convertEntityToSocketDto(taskEntity);
+        taskSocketDto.setAction("add");
+        tasks.send(taskSocketDto);
     }
+
+    public TaskWebsocketDto convertEntityToSocketDto(TaskEntity taskEntity) {
+        TaskWebsocketDto taskSocketDto = new TaskWebsocketDto();
+        taskSocketDto.setTask(convertToDto(taskEntity));
+
+        return taskSocketDto;
+    }
+
+
     public List<TaskEntity> getTasks() {
         return taskDao.findAll();
     }
@@ -275,13 +292,20 @@ TaskBean {
             if(a.isActive() && !role.equals("developer")) {
                 a.setActive(false);
                 taskDao.updateTask(a);
+                dashboard.send("ping");
+                TaskWebsocketDto taskWebsocketDto = convertEntityToSocketDto(a);
+                taskWebsocketDto.setAction("update");
+                tasks.send(taskWebsocketDto);
+
             }else if(!a.isActive()&& role.equals("Owner")) {
                 taskDao.remove(a);
+                dashboard.send("ping");
             }
             return true;
         }
         return false;
     }
+
 
 
     public ArrayList<Task> getAllActiveTasks (){
@@ -314,6 +338,10 @@ TaskBean {
             a.setEndDate(task.getEndDate());
             a.setCategory(task.getCategory());
             taskDao.updateTask(a);
+            dashboard.send("ping");
+            TaskWebsocketDto taskWebsocketDto = convertEntityToSocketDto(a);
+            taskWebsocketDto.setAction("update");
+            tasks.send(taskWebsocketDto);
             return true;
         }
         return false;
@@ -333,6 +361,10 @@ TaskBean {
                 a.setDoingDate(LocalDate.now());
             }
             taskDao.updateTask(a);
+            dashboard.send("ping");
+            TaskWebsocketDto taskWebsocketDto = convertEntityToSocketDto(a);
+            taskWebsocketDto.setAction("status");
+            tasks.send(taskWebsocketDto);
             return true;
 
         }

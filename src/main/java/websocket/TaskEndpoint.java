@@ -1,6 +1,8 @@
 package websocket;
 import dto.Task;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import jakarta.websocket.server.ServerEndpoint;
 import jakarta.websocket.server.PathParam;
 import jakarta.websocket.OnOpen;
@@ -17,7 +19,7 @@ import bean.UserBean;
 import com.google.gson.Gson;
 import dto.TaskWebsocketDto;
 
-
+@ApplicationScoped
 @ServerEndpoint("/task/{token}")
 public class TaskEndpoint {
 
@@ -28,9 +30,7 @@ public class TaskEndpoint {
 
 
     private static final Logger LOGGER = Logger.getLogger(TaskEndpoint.class.getName());
-
     private static Map<String, Session> sessions = new ConcurrentHashMap<>();
-
     public static Map<String, Session> getSessions() {
         return sessions;
     }

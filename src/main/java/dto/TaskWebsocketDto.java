@@ -2,19 +2,26 @@ package dto;
 
 public class TaskWebsocketDto {
 
-    private String taskId;
+    private String action;
 
     private Task task;
 
+    public TaskWebsocketDto(String action) {
+        this.action = action;
+
+    }
+
     public TaskWebsocketDto() {
+        this.action = action;
+        this.task = task;
     }
 
-    public String getTaskId() {
-        return taskId;
+    public String getAction() {
+        return action;
     }
 
-    public void setTaskId(String taskId) {
-        this.taskId = taskId;
+    public void setAction(String action) {
+        this.action = action;
     }
 
     public Task getTask() {
