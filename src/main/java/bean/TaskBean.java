@@ -158,6 +158,10 @@ TaskBean {
         if (a != null) {
             a.setActive(true);
             taskDao.updateTask(a);
+            dashboard.send("ping");
+            TaskWebsocketDto taskWebsocketDto = convertEntityToSocketDto(a);
+            taskWebsocketDto.setAction("restore");
+            tasks.send(taskWebsocketDto);
             return true;
         }
         return false;
@@ -300,6 +304,9 @@ TaskBean {
             }else if(!a.isActive()&& role.equals("Owner")) {
                 taskDao.remove(a);
                 dashboard.send("ping");
+                TaskWebsocketDto taskWebsocketDto = convertEntityToSocketDto(a);
+                taskWebsocketDto.setAction("delete");
+                tasks.send(taskWebsocketDto);
             }
             return true;
         }

@@ -1,5 +1,6 @@
 package bean;
 
+import jakarta.inject.Inject;
 import jakarta.websocket.Session;
 import dao.MessageDao;
 import dto.MessageDto;
@@ -15,12 +16,19 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import static websocket.MessageEndpoint.getSessions;
+import websocket.MessageEndpoint;
+import com.google.gson.Gson;
 
 @Stateless
 public class MessageBean {
 
     @EJB
     private MessageDao messageDao;
+    @Inject
+    private MessageEndpoint messageEndpoint;
+
+
+    Gson gson = new Gson();
 
     private static final Logger LOGGER = Logger.getLogger(MessageBean.class.getName());
 
@@ -65,8 +73,22 @@ public class MessageBean {
             if (messageEntity.getReceiver().getUsername().equals(user1.getUsername()) && !messageEntity.isRead()) {
                 messageEntity.setRead(true);
                 messageDao.update(messageEntity);
+                if(isReceiverloggedIn(user1, user2) != null){
+                    MessageDto messageDto = new MessageDto();
+                    messageDto.setMessage(messageEntity.getMessage());
+                    messageDto.setSender(messageEntity.getSender().getUsername());
+                    messageDto.setReceiver(messageEntity.getReceiver().getUsername());
+                    messageDto.setSendDate(messageEntity.getTimestamp());
+                    messageDto.setRead(messageEntity.isRead());
+                    messageEndpoint.send(gson.toJson(messageDto), user1.getToken(), user2.getUsername());
+                }
             }
         }
+        MessageDto readConfirmation = new MessageDto();
+        readConfirmation.setSender(user2.getUsername());
+        readConfirmation.setReceiver(user1.getUsername());
+        readConfirmation.setMessage("All messages have been read");
+        messageEndpoint.send(gson.toJson(readConfirmation), user2.getToken(), user1.getUsername());
     }
 
     public Session isReceiverloggedIn(UserEntity receiver, UserEntity sender) {

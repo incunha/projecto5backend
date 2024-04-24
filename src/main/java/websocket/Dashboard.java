@@ -6,13 +6,16 @@ import jakarta.websocket.server.ServerEndpoint;
 import jakarta.websocket.*;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 
 @Singleton
 @ServerEndpoint("/websocket/dashboard/{token}")
 public class Dashboard {
-    HashMap<String, Session> sessions = new HashMap<String, Session>();
+    private Map<String, Session> sessions = Collections.synchronizedMap(new HashMap<>());
 
     public void send(String msg) {
         sessions.values().forEach(session -> {
@@ -33,9 +36,17 @@ public class Dashboard {
     @OnClose
     public void onClose(Session session, CloseReason reason) {
         System.out.println("Websocket session is closed with CloseCode: " + reason.getCloseCode() + ": " + reason.getReasonPhrase());
-        for (String key : sessions.keySet()) {
-            if (sessions.get(key) == session)
-                sessions.remove(key);
+
+        // Sincronizar acesso ao HashMap sessions
+        synchronized (sessions) {
+            Iterator<Map.Entry<String, Session>> iterator = sessions.entrySet().iterator();
+            while (iterator.hasNext()) {
+                Map.Entry<String, Session> entry = iterator.next();
+                if (entry.getValue() == session) {
+                    iterator.remove();
+                    break;
+                }
+            }
         }
     }
     @OnMessage

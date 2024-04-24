@@ -8,7 +8,9 @@ import dao.UserDao;
 import dto.MessageDto;
 import entities.MessageEntity;
 import entities.UserEntity;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import jakarta.websocket.OnClose;
 import jakarta.websocket.OnMessage;
 import jakarta.websocket.OnOpen;
@@ -23,6 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import java.util.ArrayList;
 
+@ApplicationScoped
 @ServerEndpoint("/chat/{token}/{username}")
 public class MessageEndpoint {
     @Inject
@@ -87,16 +90,18 @@ public class MessageEndpoint {
         if (sender != null && receiver != null) {
             messageBean.sendMessage(sender, receiver, messageDto.getMessage());
 
-            // Enviar a mensagem para o remetente independentemente do estado de login do destinatário
-            send(gson.toJson(messageDto), sender.getToken(), messageDto.getReceiver());
-
-            if (messageBean.isReceiverloggedIn(receiver, sender) != null) {
+            // Verificar se o destinatário está na sessão
+            String receiverSessionId = receiver.getToken() + messageDto.getSender();
+            if (sessions.containsKey(receiverSessionId)) {
+                // Se o destinatário estiver na sessão, marcar a mensagem como lida
                 messageBean.markMessagesAsRead(sender, receiver);
+                messageDto.setRead(true);
                 send(gson.toJson(messageDto), receiver.getToken(), messageDto.getSender());
+                send(gson.toJson(messageDto), sender.getToken(), messageDto.getReceiver());
             } else {
-                // Enviar uma notificação para o destinatário
+                // Se o destinatário não estiver na sessão, enviar uma notificação
                 Notifier.sendNotification(messageDto.getReceiver(), "New message from " + messageDto.getSender());
-
+                send(gson.toJson(messageDto), sender.getToken(), messageDto.getReceiver());
                 // Persistir a notificação no banco de dados
                 notificationBean.sendNotification(sender, receiver, "New message from " + messageDto.getSender());
             }
