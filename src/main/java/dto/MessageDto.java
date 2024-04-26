@@ -1,6 +1,5 @@
 package dto;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class MessageDto {
@@ -9,6 +8,7 @@ public class MessageDto {
     private String receiver;
     private LocalDateTime sendDate;
     private boolean read;
+    private LocalDateTime timestamp; // Adicione este campo
 
     public MessageDto() {
     }
@@ -53,5 +53,11 @@ public class MessageDto {
         this.read = read;
     }
 
+    public LocalDateTime getTimestamp() {
+        return timestamp;
+    }
 
+    public void setTimestamp(LocalDateTime timestamp) {
+        this.timestamp = timestamp;
+    }
 }

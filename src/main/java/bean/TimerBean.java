@@ -32,9 +32,13 @@ public class TimerBean {
                 int timeoutValue = userDao.getTimeOut();
 
                 LocalDateTime lastInteraction = user.getLastInteraction();
-                Duration duration = Duration.between(lastInteraction, LocalDateTime.now());
+                if(lastInteraction != null) {
+
+                    Duration duration = Duration.between(lastInteraction, LocalDateTime.now());
+
                 if (duration.toMinutes() > timeoutValue) {
                     notifier.sendLogoutNotification(user.getUsername());
+                }
                 }
             }
         }

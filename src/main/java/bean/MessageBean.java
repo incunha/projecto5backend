@@ -8,7 +8,10 @@ import entities.MessageEntity;
 import entities.UserEntity;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
+import service.ObjectMapperContextResolver;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +20,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import static websocket.MessageEndpoint.getSessions;
 import websocket.MessageEndpoint;
-import com.google.gson.Gson;
 
 @Stateless
 public class MessageBean {
@@ -26,9 +28,8 @@ public class MessageBean {
     private MessageDao messageDao;
     @Inject
     private MessageEndpoint messageEndpoint;
-
-
-    Gson gson = new Gson();
+    @Inject
+    private ObjectMapperContextResolver contextResolver;
 
     private static final Logger LOGGER = Logger.getLogger(MessageBean.class.getName());
 
@@ -80,7 +81,12 @@ public class MessageBean {
                     messageDto.setReceiver(messageEntity.getReceiver().getUsername());
                     messageDto.setSendDate(messageEntity.getTimestamp());
                     messageDto.setRead(messageEntity.isRead());
-                    messageEndpoint.send(gson.toJson(messageDto), user1.getToken(), user2.getUsername());
+                    try {
+                        ObjectMapper mapper = contextResolver.getContext(Object.class);
+                        messageEndpoint.send(mapper.writeValueAsString(messageDto), user1.getToken(), user2.getUsername());
+                    } catch (IOException e) {
+                        throw new RuntimeException("Falha ao serializar a mensagem para JSON", e);
+                    }
                 }
             }
         }
@@ -88,7 +94,12 @@ public class MessageBean {
         readConfirmation.setSender(user2.getUsername());
         readConfirmation.setReceiver(user1.getUsername());
         readConfirmation.setMessage("All messages have been read");
-        messageEndpoint.send(gson.toJson(readConfirmation), user2.getToken(), user1.getUsername());
+        try {
+            ObjectMapper mapper = contextResolver.getContext(Object.class);
+            messageEndpoint.send(mapper.writeValueAsString(readConfirmation), user2.getToken(), user1.getUsername());
+        } catch (IOException e) {
+            throw new RuntimeException("Falha ao serializar a mensagem para JSON", e);
+        }
     }
 
     public Session isReceiverloggedIn(UserEntity receiver, UserEntity sender) {
