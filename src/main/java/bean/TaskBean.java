@@ -500,8 +500,11 @@ TaskBean {
 
     public double averageTasksPerUser() {
         List<UserEntity> users = userDao.findAll();
+        System.out.println(users.size());
         List<TaskEntity> tasks = taskDao.findAll();
-        return tasks.size() / users.size();
+        System.out.println(tasks.size());
+        System.out.println(tasks.size() / users.size());
+        return  (double) tasks.size() / users.size();
     }
 
 

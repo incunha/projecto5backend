@@ -38,7 +38,7 @@ public class TimerBean {
 
                 if (duration.toMinutes() > timeoutValue) {
                     notifier.sendLogoutNotification(user.getUsername());
-                }
+                  }
                 }
             }
         }

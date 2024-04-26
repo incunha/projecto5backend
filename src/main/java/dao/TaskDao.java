@@ -220,9 +220,12 @@ public class TaskDao extends AbstractDao<TaskEntity>{
         // Process the results into a Map
         HashMap<LocalDate, Long> tasksCompletedByDate = new HashMap<>();
         for (Object[] result : results) {
+
             LocalDate date = (LocalDate) result[0];
             Long count = (Long) result[1];
-            tasksCompletedByDate.put(date, count);
+            if (date != null) {
+                tasksCompletedByDate.put(date, count);
+            }
         }
         return tasksCompletedByDate;
     }

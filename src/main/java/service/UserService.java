@@ -380,5 +380,18 @@ public class UserService {
         }
     }
 
+    @PUT
+    @Path("/setTimeOut")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response setTimeOut(@HeaderParam("token") String token, int timeOut) {
+        boolean authorized = userBean.isUserOwner(token);
+        if (!authorized) {
+            return Response.status(403).entity("Forbidden").build();
+        } else {
+            userBean.setTimeOut(timeOut);
+            return Response.status(200).entity("Time out set").build();
+        }
+    }
+
 
 }

@@ -62,6 +62,10 @@ public class UserBean {
         userDao.persist(userEntity);
     }
 
+    public void setTimeOut (int timeout) {
+        userDao.setTimeOut(timeout);
+    }
+
     public void confirmUser( String confirmationToken, String password) {
         UserEntity userEntity = userDao.findUserByConfirmationToken(confirmationToken);
         userEntity.setConfirmed(true);
@@ -235,28 +239,15 @@ public boolean findOtherUserByUsername(String username) {
     public boolean isUserAuthorized(String token) {
         UserEntity a = userDao.findUserByToken(token);
         if (a != null) {
-            int sessionTimeOut = userDao.getTimeOut();
-            LocalDateTime now = LocalDateTime.now();
-            LocalDateTime lastInteraction = a.getLastInteraction();
-            long minutes = ChronoUnit.MINUTES.between(lastInteraction, now);
 
-            if (minutes < sessionTimeOut) {
-                a.setLastInteraction(now);
-                userDao.updateUser(a);
                 return true;
-            }
+
         }
-        timeOutLogout(token);
+
         return false;
     }
 
-    public void timeOutLogout (String token) {
-        UserEntity user = userDao.findUserByToken(token);
-        Notifier.sendLogoutNotification(user.getUsername());
-        user.setLastInteraction(null);
-        user.setToken(null);
-        userDao.updateToken(user);
-    }
+
 
     public boolean isUserValid(User user) {
         if (user.getUsername().isBlank() || user.getName().isBlank() || user.getEmail().isBlank() || user.getContactNumber().isBlank() || user.getUserPhoto().isBlank()) {
