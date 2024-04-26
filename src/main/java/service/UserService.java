@@ -380,7 +380,7 @@ public class UserService {
         }
     }
 
-    @PUT
+    @PATCH
     @Path("/setTimeOut")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response setTimeOut(@HeaderParam("token") String token, int timeOut) {
