@@ -1,18 +1,43 @@
 package bean;
+import dao.UserDao;
+import entities.TimeOut;
+import entities.UserEntity;
+import jakarta.websocket.Session;
 import websocket.Notifier;
 import jakarta.ejb.Schedule;
 import jakarta.ejb.Singleton;
 import jakarta.inject.Inject;
 
-//@Singleton
-//public class TimerBean {
-    //@Inject
-   // Notifier notifier;
-   // @Schedule(second="*/30", minute="*", hour="*") // this automatic timer is set to expire every 30 seconds
-    //public void automaticTimer(){
-      //  String msg = "This is just a reminder!";
-      //  System.out.println(msg);
-        //notifier.send("mytoken",msg);
-    //}
-//}
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Singleton
+public class TimerBean {
+    @Inject
+   Notifier notifier;
+    @Inject
+    UserDao userDao;
+
+
+    @Schedule(second="*", minute="*/1", hour="*")
+
+    public void automaticTimer(){
+
+        List<UserEntity> users = userDao.findAll();
+
+        for (UserEntity user : users) {
+            Session userSession = Notifier.getSessions().get(user.getUsername());
+            if (userSession != null && userSession.isOpen()) {
+                int timeoutValue = userDao.getTimeOut();
+
+                LocalDateTime lastInteraction = user.getLastInteraction();
+                Duration duration = Duration.between(lastInteraction, LocalDateTime.now());
+                if (duration.toMinutes() > timeoutValue) {
+                    notifier.sendLogoutNotification(user.getUsername());
+                }
+            }
+        }
+    }
+}
 

@@ -11,7 +11,7 @@ import jakarta.persistence.*;
 @NamedQuery(name = "User.findDeletedUsers", query = "SELECT u FROM UserEntity u WHERE u.active = false AND u.confirmed = true")
 @NamedQuery(name = "User.findActiveUsers", query = "SELECT u FROM UserEntity u WHERE u.active = true AND u.confirmed = true")
 @NamedQuery(name = "User.findUserByToken", query = "SELECT DISTINCT u FROM UserEntity u WHERE u.token = :token AND u.confirmed = true")
-@NamedQuery(name = "User.findUserByUsername", query = "SELECT u FROM UserEntity u WHERE u.username = :username AND u.confirmed = true")
+@NamedQuery(name = "User.findUserByUsername", query = "SELECT u FROM UserEntity u WHERE u.username = :username")
 @NamedQuery(name = "User.findAllUsers", query = "SELECT u FROM UserEntity u WHERE u.confirmed = true")
 @NamedQuery(name = "User.updateToken", query = "UPDATE UserEntity u SET u.token = :token WHERE u.username = :username AND u.confirmed = true")
 @NamedQuery(name = "User.findUserByConfirmationToken", query = "SELECT u FROM UserEntity u WHERE u.confirmationToken = :confirmationToken")
@@ -44,6 +44,8 @@ public class UserEntity implements Serializable{
     String confirmationToken;
     @Column(name="dateCreated", nullable=true, unique=false)
     LocalDate dateCreated;
+    @Column(name="lastInteraction", nullable = true, unique = false)
+    LocalDateTime lastInteraction;
 
 
     public String getUsername() {
@@ -136,5 +138,13 @@ public class UserEntity implements Serializable{
 
     public void setDateCreated(LocalDate dateCreated) {
         this.dateCreated = dateCreated;
+    }
+
+    public LocalDateTime getLastInteraction() {
+        return lastInteraction;
+    }
+
+    public void setLastInteraction (LocalDateTime lastInteraction) {
+        this.lastInteraction = lastInteraction;
     }
 }

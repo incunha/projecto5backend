@@ -140,25 +140,6 @@ public class UserService {
     }
 
 
-
-    @GET
-    @Path("/photo")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getPhoto(@HeaderParam("token") String token) {
-        boolean user = userBean.userExists(token);
-        boolean authorized = userBean.isUserAuthorized(token);
-        if (!user) {
-            return Response.status(404).entity("User with this username is not found").build();
-        } else if (!authorized) {
-            return Response.status(403).entity("Forbidden").build();
-        }
-        User user1 = userBean.getUser(token);
-        if (user1.getUserPhoto() == null) {
-            return Response.status(400).entity("User with no photo").build();
-        }
-        return Response.status(200).entity(user1.getUserPhoto()).build();
-    }
-
     @GET
     @Path("/{username}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -166,8 +147,6 @@ public class UserService {
         boolean exists = userBean.findOtherUserByUsername(username);
         if (!exists) {
             return Response.status(404).entity("User with this username is not found").build();
-        } else if (userBean.getUser(token).getRole().equals("developer") && !userBean.getUser(token).getUsername().equals(username)) {
-            return Response.status(403).entity("Forbidden").build();
         }
         User user = userBean.getUserByUsername(username);
         UserDto userDto = userBean.convertUsertoUserDto(user);
@@ -233,12 +212,13 @@ public class UserService {
         User user = userBean.getUserByUsername(username);
         if (!user.isActive()) {
             return Response.status(403).entity("User is not active").build();
+        } else if (!user.isConfirmed()) {
+            return Response.status(403).entity("User is not confirmed").build();
         } else {
             String token = userBean.login(username, password);
             if (token == null) {
                 return Response.status(404).entity("User with this username and password is not found").build();
             } else {
-
                 return Response.status(200).entity(token).build();
 
             }

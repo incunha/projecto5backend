@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.lang.reflect.Array;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +32,7 @@ import jakarta.security.enterprise.credential.Password;
 import utilities.EncryptHelper;
 import entities.MessageEntity;
 import dao.MessageDao;
+import websocket.Notifier;
 
 
 @Singleton
@@ -177,6 +179,7 @@ public class UserBean {
         }
         return false;
     }
+
     public boolean isPasswordValid(PasswordDto password) {
         if (password.getPassword().isBlank() || password.getNewPassword().isBlank()) {
             return false;
@@ -204,7 +207,9 @@ public boolean findOtherUserByUsername(String username) {
                 return null;
             }
             user.setToken(token);
-            userDao.updateToken(user);
+            user.setLastInteraction(LocalDateTime.now());
+            userDao.updateUser(user);
+
             return token;
         }
         return null;
@@ -230,10 +235,27 @@ public boolean findOtherUserByUsername(String username) {
     public boolean isUserAuthorized(String token) {
         UserEntity a = userDao.findUserByToken(token);
         if (a != null) {
-            return true;
-        }
-        return false;
+            int sessionTimeOut = userDao.getTimeOut();
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime lastInteraction = a.getLastInteraction();
+            long minutes = ChronoUnit.MINUTES.between(lastInteraction, now);
 
+            if (minutes < sessionTimeOut) {
+                a.setLastInteraction(now);
+                userDao.updateUser(a);
+                return true;
+            }
+        }
+        timeOutLogout(token);
+        return false;
+    }
+
+    public void timeOutLogout (String token) {
+        UserEntity user = userDao.findUserByToken(token);
+        Notifier.sendLogoutNotification(user.getUsername());
+        user.setLastInteraction(null);
+        user.setToken(null);
+        userDao.updateToken(user);
     }
 
     public boolean isUserValid(User user) {
@@ -357,8 +379,9 @@ public boolean findOtherUserByUsername(String username) {
 
     public void logout(String token) {
         UserEntity user = userDao.findUserByToken(token);
+        user.setLastInteraction(null);
         user.setToken(null);
-        userDao.updateToken(user);
+        userDao.updateUser(user);
     }
 
     public UserDto convertUsertoUserDto(User user) {
@@ -429,6 +452,52 @@ public boolean findOtherUserByUsername(String username) {
             userEntity1.setDateCreated(LocalDate.now());
             userDao.persist(userEntity1);
         }
+
+        if(userDao.findUserByUsername("tony") == null) {
+            UserEntity userEntity = new UserEntity();
+            userEntity.setUsername("tony");
+            userEntity.setName("António Silva");
+            userEntity.setEmail("tony@gmail.com");
+            userEntity.setPassword(EncryptHelper.encryptPassword("pass"));
+            userEntity.setContactNumber("123456789");
+            userEntity.setUserPhoto("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQe36tgwsLsNUfcLG7G0rxOHz5Rkl5LAy0Y2g&s");
+            userEntity.setRole("developer");
+            userEntity.setActive(true);
+            userEntity.setConfirmed(true);
+            userEntity.setDateCreated(LocalDate.of(2024, 3, 12));
+            userDao.persist(userEntity);
+        }
+
+        if(userDao.findUserByUsername("ju") == null) {
+            UserEntity userEntity = new UserEntity();
+            userEntity.setUsername("ju");
+            userEntity.setName("Joana Costa");
+            userEntity.setEmail("joaninha@gmail.com");
+            userEntity.setPassword(EncryptHelper.encryptPassword("pass"));
+            userEntity.setContactNumber("123456789");
+            userEntity.setUserPhoto("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ_0n_RaF3ENQsybygfdmdN0wSY5s_Qvifb5g&s");
+            userEntity.setRole("ScrumMaster");
+            userEntity.setActive(true);
+            userEntity.setConfirmed(true);
+            userEntity.setDateCreated(LocalDate.of(2024, 1, 10));
+            userDao.persist(userEntity);
+        }
+
+        if(userDao.findUserByUsername("jony") == null) {
+            UserEntity userEntity = new UserEntity();
+            userEntity.setUsername("jony");
+            userEntity.setName("João Neves");
+            userEntity.setEmail("joaNeves@gmail.com");
+            userEntity.setPassword(EncryptHelper.encryptPassword("pass"));
+            userEntity.setContactNumber("123456789");
+            userEntity.setUserPhoto("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQqj-TpMbj4LXXd62N9GKTGut2oxVFtYTwFDA&s");
+            userEntity.setRole("Owner");
+            userEntity.setActive(true);
+            userEntity.setConfirmed(true);
+            userEntity.setDateCreated(LocalDate.of(2024, 2, 22));
+            userDao.persist(userEntity);
+        }
+
     }
 
     public ArrayList<User> getFilteredUsers(String role, Boolean active) {

@@ -1,11 +1,14 @@
 package dao;
 
+import entities.TimeOut;
 import entities.UserEntity;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 
+import java.sql.Time;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Stateless
@@ -92,8 +95,14 @@ public class UserDao extends AbstractDao<UserEntity> {
         return em.createNamedQuery("User.countConfirmedUsersByDate").getResultList();
     }
 
+    public int getTimeOut() {
+        TimeOut timeOut = (TimeOut) em.createNamedQuery("TimeOut.findTimeOut").getSingleResult();
+        return timeOut.getTimeOut();
+    }
 
-
+    public void setTimeOut(int timeOut) {
+        em.createNamedQuery("TimeOut.updateTimeOut").setParameter("timeOut", timeOut).executeUpdate();
+    }
 
 
 }
