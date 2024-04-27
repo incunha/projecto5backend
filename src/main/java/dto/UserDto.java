@@ -10,8 +10,8 @@ public class UserDto {
     private String ContactNumber;
     private String role;
     private String userPhoto;
-
     private String username;
+    private Boolean active;
 
     public UserDto() {
     }
@@ -62,6 +62,14 @@ public class UserDto {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    @XmlElement
+    public Boolean getActive() {
+        return active;
+    }
+    public void setActive(Boolean active) {
+        this.active = active;
     }
 
 

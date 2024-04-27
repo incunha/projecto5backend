@@ -1,14 +1,15 @@
 package websocket;
+
 import dto.Task;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
 import jakarta.websocket.server.ServerEndpoint;
 import jakarta.websocket.server.PathParam;
 import jakarta.websocket.OnOpen;
 import jakarta.websocket.OnClose;
 import jakarta.websocket.Session;
 import jakarta.websocket.OnMessage;
+import service.ObjectMapperContextResolver;
 
 import java.io.IOException;
 import java.util.Map;
@@ -16,7 +17,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import bean.TaskBean;
 import bean.UserBean;
-import com.google.gson.Gson;
 import dto.TaskWebsocketDto;
 
 @ApplicationScoped
@@ -27,7 +27,8 @@ public class TaskEndpoint {
     private TaskBean taskBean;
     @Inject
     private UserBean userBean;
-
+    @Inject
+    private ObjectMapperContextResolver objectMapperContextResolver;
 
     private static final Logger LOGGER = Logger.getLogger(TaskEndpoint.class.getName());
     private static Map<String, Session> sessions = new ConcurrentHashMap<>();
@@ -50,13 +51,10 @@ public class TaskEndpoint {
         System.out.println("Message received: " + msg);
     }
 
-
     public void send(TaskWebsocketDto taskWebsocketDto) {
         sessions.values().forEach(session -> {
             try {
-                Gson gson = new Gson();
-                String msg = gson.toJson(taskWebsocketDto);
-
+                String msg = objectMapperContextResolver.getContext(TaskWebsocketDto.class).writeValueAsString(taskWebsocketDto);
                 session.getBasicRemote().sendText(msg);
             } catch (IOException e) {
                 System.out.println("Error in sending message to session " + session.getId() + ": " + e.getMessage());

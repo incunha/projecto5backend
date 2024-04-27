@@ -100,7 +100,7 @@ public class TaskService {
             return Response.status(201).entity(taskBean.convertToDto(taskEntity)).build();
         }
     }
-    @PATCH
+    @PUT
     @Path("/active/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response restoreTask(@HeaderParam("token") String token, @PathParam("id") String id) {
@@ -208,7 +208,7 @@ public class TaskService {
             }
         }
     }
-    @PATCH
+    @PUT
     @Path("/status/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response changeStatus(@HeaderParam("token") String token, @PathParam("id") String id,  String status) {

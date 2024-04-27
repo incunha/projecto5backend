@@ -393,6 +393,7 @@ public boolean findOtherUserByUsername(String username) {
         userDto.setRole(user.getRole());
         userDto.setUserPhoto(user.getUserPhoto());
         userDto.setUsername(user.getUsername());
+        userDto.setActive(user.isActive());
         return userDto;
     }
 
