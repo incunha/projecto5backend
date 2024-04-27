@@ -16,9 +16,7 @@ import dao.NotificationDao;
 import dao.TaskDao;
 import dao.UserDao;
 import dto.*;
-import entities.NotificationEntity;
-import entities.TaskEntity;
-import entities.UserEntity;
+import entities.*;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Singleton;
 import jakarta.ejb.Startup;
@@ -30,7 +28,6 @@ import jakarta.json.bind.JsonbBuilder;
 import jakarta.json.bind.JsonbConfig;
 import jakarta.security.enterprise.credential.Password;
 import utilities.EncryptHelper;
-import entities.MessageEntity;
 import dao.MessageDao;
 import websocket.Notifier;
 
@@ -63,8 +60,21 @@ public class UserBean {
     }
 
     public void setTimeOut (int timeout) {
-        userDao.setTimeOut(timeout);
+        userDao.findTimeOut(1).setTimeOut(timeout);
+
     }
+
+    public void checkUnconfirmedTimeout() {
+        List<UserEntity> users = userDao.findUnconfirmedUsers();
+        TimeOut timeout = userDao.findTimeOut(1);
+        for (UserEntity user : users) {
+            if (ChronoUnit.DAYS.between(user.getDateCreated(), LocalDate.now()) > timeout.getUnconfirmedTimeOut()) {
+                userDao.remove(user);
+            }
+        }
+    }
+
+
 
     public void confirmUser( String confirmationToken, String password) {
         UserEntity userEntity = userDao.findUserByConfirmationToken(confirmationToken);
@@ -608,6 +618,15 @@ public boolean findOtherUserByUsername(String username) {
                 ));
     }
 
+    public void createInitialTimeOut() {
+        if (userDao.findTimeOut(1) == null) {
+            TimeOut timeout = new TimeOut();
+            timeout.setTimeOut(5);
+            timeout.setUnconfirmedTimeOut(3);
+            userDao.createTimeOut(timeout);
+        }
+
+    }
 }
 
 

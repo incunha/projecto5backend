@@ -99,6 +99,7 @@ public class MessageEndpoint {
         // Verificar se o remetente e o destinatário existem
         if (sender != null && receiver != null) {
             messageBean.sendMessage(sender, receiver, messageDto.getMessage());
+            sender.setLastInteraction(LocalDateTime.now());
 
             // Verificar se o destinatário está na sessão
             String receiverSessionId = receiver.getToken() + messageDto.getSender();

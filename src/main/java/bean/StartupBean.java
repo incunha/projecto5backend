@@ -17,6 +17,7 @@ public class StartupBean {
     public void init() {
 
         userBean.createDefaultUsers();
+        userBean.createInitialTimeOut();
         taskBean.createDefaultCategories();
         taskBean.createDefaultTasks();
     }

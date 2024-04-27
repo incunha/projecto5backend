@@ -424,7 +424,7 @@ TaskBean {
         taskEntity.setStartDate(LocalDate.now());
         taskEntity.setPriority(100);
         taskEntity.setEndDate(LocalDate.of(2199, 12, 31));
-        taskEntity.setUser(userDao.findUserByUsername("admin"));
+        taskEntity.setUser(userDao.findUserByUsername("jony"));
         taskEntity.setActive(true);
         taskDao.createTask(taskEntity);
     }
@@ -438,7 +438,7 @@ TaskBean {
         taskEntity.setStartDate(LocalDate.now());
         taskEntity.setPriority(200);
         taskEntity.setEndDate(LocalDate.of(2199, 12, 31));
-        taskEntity.setUser(userDao.findUserByUsername("admin"));
+        taskEntity.setUser(userDao.findUserByUsername("tony"));
         taskEntity.setActive(true);
         taskDao.createTask(taskEntity);
     }
@@ -452,7 +452,7 @@ TaskBean {
         taskEntity.setStartDate(LocalDate.now());
         taskEntity.setPriority(300);
         taskEntity.setEndDate(LocalDate.of(2199, 12, 31));
-        taskEntity.setUser(userDao.findUserByUsername("admin"));
+        taskEntity.setUser(userDao.findUserByUsername("ju"));
         taskEntity.setActive(true);
         taskDao.createTask(taskEntity);
     }

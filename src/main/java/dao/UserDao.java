@@ -105,4 +105,22 @@ public class UserDao extends AbstractDao<UserEntity> {
     }
 
 
+    public List<UserEntity> findUnconfirmedUsers() {
+        return em.createNamedQuery("User.findAllUnconfirmedUsers").getResultList();
+    }
+    public TimeOut findTimeOut(int id) {
+        try {
+            return (TimeOut) em.createNamedQuery("TimeOut.findTimeOutById")
+                    .setParameter("id", id)
+                    .getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
+    }
+    public void createTimeOut(TimeOut timeOut) {
+        em.persist(timeOut);
+    }
+    public void updateTimeOut(TimeOut timeOut) {
+        em.createNamedQuery("TimeOut.updateTimeOut").setParameter("timeOut", timeOut.getTimeOut()).setParameter("id", timeOut.getId()).executeUpdate();
+    }
 }
