@@ -190,6 +190,7 @@ TaskBean {
         task.setPriority(taskEntity.getPriority());
         task.setEndDate(taskEntity.getEndDate());
         task.setActive(taskEntity.isActive());
+        task.setUsername(taskEntity.getUser().getUsername());
         return task;
     }
 
@@ -298,7 +299,8 @@ TaskBean {
                 taskDao.updateTask(a);
                 dashboard.send("ping");
                 TaskWebsocketDto taskWebsocketDto = convertEntityToSocketDto(a);
-                taskWebsocketDto.setAction("update");
+                taskWebsocketDto.setAction("block");
+                taskWebsocketDto.getTask().setUsername(a.getUser().getUsername());
                 tasks.send(taskWebsocketDto);
 
             }else if(!a.isActive()&& role.equals("Owner")) {

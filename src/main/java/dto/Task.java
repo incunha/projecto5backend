@@ -16,6 +16,7 @@ public class Task {
     LocalDate endDate;
     String category;
     boolean active = true;
+    private String username;
 
 
     private static final int low = 100;
@@ -102,5 +103,12 @@ public class Task {
     }
     public void setActive(boolean active) {
         this.active = active;
+    }
+    @XmlElement
+    public String getUsername() {
+        return username;
+    }
+    public void setUsername(String username) {
+        this.username = username;
     }
 }

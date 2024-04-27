@@ -79,7 +79,7 @@ public class UserService {
         }
     }
 
-    @PATCH
+    @PUT
     @Path("/confirm/{confirmationToken}")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response confirmUser (@PathParam("confirmationToken") String confirmationToken, PasswordDto password) {
@@ -102,7 +102,7 @@ public class UserService {
         }
     }
 
-        @PATCH
+        @PUT
         @Path("/forgotPassword/{email}")
         @Consumes(MediaType.APPLICATION_JSON)
         public Response recoverPassword (@PathParam("email") String email) {
@@ -120,7 +120,7 @@ public class UserService {
             }
         }
 
-    @PATCH
+    @PUT
     @Path("/setPassword/{confirmationToken}")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response setPassword (@PathParam("confirmationToken") String confirmationToken, PasswordDto password) {
@@ -185,7 +185,7 @@ public class UserService {
         return Response.status(403).entity("Forbidden").build();
     }
 
-    @PATCH
+    @PUT
     @Path("/password")
     @Produces(MediaType.APPLICATION_JSON)
     public Response updatePassword(@HeaderParam("token") String token, PasswordDto password) {
@@ -270,7 +270,7 @@ public class UserService {
         }
     }
 
-    @PATCH
+    @PUT
     @Path("/active/{username}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response restoreUser(@HeaderParam("token") String token, @PathParam("username") String username) {
