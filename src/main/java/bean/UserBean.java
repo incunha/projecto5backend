@@ -27,6 +27,8 @@ import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
 import jakarta.json.bind.JsonbConfig;
 import jakarta.security.enterprise.credential.Password;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import utilities.EncryptHelper;
 import dao.MessageDao;
 import websocket.Notifier;
@@ -52,100 +54,126 @@ public class UserBean {
     @EJB
     NotificationDao NotificationDao;
 
+    private static final Logger LOGGER = LogManager.getLogger(UserBean.class);
+
     public void addUser(User a) {
-
+        LOGGER.info("addUser method called");
         UserEntity userEntity = convertToEntity(a);
-
+        LOGGER.info("UserEntity created");
         userDao.persist(userEntity);
     }
 
     public void setTimeOut (int timeout) {
+        LOGGER.info("setTimeOut method called");
+        LOGGER.info("Timeout set to: " + timeout);
         userDao.findTimeOut(1).setTimeOut(timeout);
-
     }
 
     public void checkUnconfirmedTimeout() {
+        LOGGER.info("checkUnconfirmedTimeout method called");
         List<UserEntity> users = userDao.findUnconfirmedUsers();
         TimeOut timeout = userDao.findTimeOut(1);
         for (UserEntity user : users) {
             if (ChronoUnit.DAYS.between(user.getDateCreated(), LocalDate.now()) > timeout.getUnconfirmedTimeOut()) {
+                LOGGER.info("User " + user.getUsername() + " has been deleted due to unconfirmed timeout");
                 userDao.remove(user);
             }
         }
     }
 
 
-
     public void confirmUser( String confirmationToken, String password) {
+        LOGGER.info("confirmUser method called");
         UserEntity userEntity = userDao.findUserByConfirmationToken(confirmationToken);
         userEntity.setConfirmed(true);
         userEntity.setPassword(EncryptHelper.encryptPassword(password));
+        LOGGER.info("User " + userEntity.getUsername() + " has been confirmed");
         userDao.updateUser(userEntity);
-
     }
 
     public void recoverPassword ( String confirmationToken, String password) {
+        LOGGER.info("recoverPassword method called");
         UserEntity userEntity = userDao.findUserByConfirmationToken(confirmationToken);
         if (userEntity.isConfirmed()) {
             userEntity.setPassword(EncryptHelper.encryptPassword(password));
             userDao.updateUser(userEntity);
+            LOGGER.info("User " + userEntity.getUsername() + " has recovered his password");
         }
     }
 
     public void deleteConfirmationToken(User a) {
+        LOGGER.info("deleteConfirmationToken method called");
         UserEntity userEntity = userDao.findUserByUsername(a.getUsername());
         userEntity.setConfirmationToken(null);
         userDao.updateUser(userEntity);
+        LOGGER.info("User " + userEntity.getUsername() + " has deleted his confirmation token");
     }
 
     public User getUserByConfirmationToken(String confirmationToken) {
+        LOGGER.info("getUserByConfirmationToken method called");
         UserEntity userEntity = userDao.findUserByConfirmationToken(confirmationToken);
         System.out.println(userEntity.getUsername());
+        LOGGER.info("User " + userEntity.getUsername() + " has been found by his confirmation token");
         return convertToDto(userEntity);
     }
 
 
     public User getUserByEmail(String email) {
+        LOGGER.info("getUserByEmail method called");
         UserEntity userEntity = userDao.findUserByEmail(email);
+        LOGGER.info("User " + userEntity.getUsername() + " has been found by his email");
         return convertToDto(userEntity);
     }
 
 
     public User getUser(String token) {
+        LOGGER.info("getUser method called");
         UserEntity userEntity = userDao.findUserByToken(token);
+        LOGGER.info("User " + userEntity.getUsername() + " has been found by his token");
         return convertToDto(userEntity);
     }
 
     public User findUserByUsername(String username) {
+        LOGGER.info("findUserByUsername method called");
         UserEntity userEntity = userDao.findUserByUsername(username);
+        LOGGER.info("User " + userEntity.getUsername() + " has been found by his username");
         return convertToDto(userEntity);
     }
 
 
     public List<UserEntity> getUsers() {
+        LOGGER.info("getUsers method called");
         List<UserEntity> users = userDao.findAll();
+        LOGGER.info("All users have been found");
         return users;
     }
 
     public boolean blockUser(String username) {
+        LOGGER.info("blockUser method called");
         UserEntity a = userDao.findUserByUsername(username);
         if (a != null) {
             a.setActive(false);
             userDao.updateUser(a);
+            LOGGER.info("User " + a.getUsername() + " has been blocked");
             return true;
         }
+        LOGGER.info("User " + a.getUsername() + " has not been blocked");
         return false;
     }
 
     public boolean removeUser(String username) {
+        LOGGER.info("removeUser method called");
         UserEntity a = userDao.findUserByUsername(username);
         if (a != null) {
             userDao.remove(a);
+            LOGGER.info("User " + a.getUsername() + " has been removed");
             return true;
         }
+        LOGGER.info("User " + a.getUsername() + " has not been removed");
         return false;
     }
     public boolean ownerupdateUser(String token, User user) {
+        LOGGER.info("ownerupdateUser method called");
         UserEntity a = userDao.findUserByUsername(user.getUsername());
         UserEntity responsible = userDao.findUserByToken(token);
         if (a != null && responsible.getRole().equals("Owner")) {
@@ -155,18 +183,23 @@ public class UserBean {
             a.setUserPhoto(user.getUserPhoto());
             a.setRole(user.getRole());
             userDao.updateUser(a);
+            LOGGER.info("User " + a.getUsername() + " has been updated by the owner");
             return true;
         }
+        LOGGER.info("User " + a.getUsername() + " has not been updated by the owner");
         return false;
     }
 
     public boolean updateUserEntity(User user) {
+        LOGGER.info("updateUserEntity method called");
         UserEntity user1 = convertToEntity(user);
         userDao.updateUser(user1);
+        LOGGER.info("User " + user1.getUsername() + " has been updated");
         return true;
     }
 
     public boolean updateUser(String token, User user) {
+        LOGGER.info("updateUser method called");
         UserEntity a = userDao.findUserByUsername(user.getUsername());
         if (a != null) {
             a.setUsername(user.getUsername());
@@ -178,101 +211,129 @@ public class UserBean {
             a.setRole(user.getRole());
             a.setActive(user.isActive());
             userDao.updateUser(a);
+            LOGGER.info("User " + a.getUsername() + " has been updated");
             return true;
         }
+        LOGGER.info("User " + a.getUsername() + " has not been updated");
         return false;
     }
+
     public boolean updatePassword(String token, PasswordDto password) {
+        LOGGER.info("updatePassword method called");
         UserEntity a = userDao.findUserByToken(token);
         if (a != null) {
             if (a.getPassword().equals(EncryptHelper.encryptPassword(password.getPassword()))) {
                 a.setPassword(EncryptHelper.encryptPassword(password.getNewPassword()));
                 userDao.updateUser(a);
+                LOGGER.info("Password of user " + a.getUsername() + " has been updated");
                 return true;
             }
         }
+        LOGGER.info("Password of user " + a.getUsername() + " has not been updated");
         return false;
     }
 
     public boolean isPasswordValid(PasswordDto password) {
+        LOGGER.info("isPasswordValid method called");
         if (password.getPassword().isBlank() || password.getNewPassword().isBlank()) {
+            LOGGER.info("Password is not valid");
             return false;
         } else if (password.getPassword() == null || password.getNewPassword() == null) {
+            LOGGER.info("Password is not valid");
             return false;
         }
+        LOGGER.info("Password is valid");
         return true;
     }
 
 public boolean findOtherUserByUsername(String username) {
+        LOGGER.info("findOtherUserByUsername method called");
         UserEntity a = userDao.findUserByUsername(username);
+        LOGGER.info("User " + a.getUsername() + " has been found by his username");
       return a != null;
 }
 
     public String login(String username, String password) {
+        LOGGER.info("login method called");
         UserEntity user = userDao.findUserByUsername(username);
         String password1 = EncryptHelper.encryptPassword(password);
         if (user != null && user.isActive() && user.isConfirmed()) {
             String token;
             if (user.getPassword().equals(password1)) {
                 do {
+                    LOGGER.info("Token generated");
                     token = generateToken();
                 } while (tokenExists(token));
             } else {
+                LOGGER.info("Password is not valid");
                 return null;
             }
             user.setToken(token);
             user.setLastInteraction(LocalDateTime.now());
             userDao.updateUser(user);
-
+            LOGGER.info("User " + user.getUsername() + " has logged in");
             return token;
         }
+        LOGGER.info("User " + user.getUsername() + " has not logged in");
         return null;
     }
 
     public boolean userExists(String token) {
-        ;
+        LOGGER.info("userExists method called");
         UserEntity a = userDao.findUserByToken(token);
         if (a != null) {
+            LOGGER.info("User " + a.getUsername() + " exists");
             return true;
         }
+        LOGGER.info("User " + a.getUsername() + " does not exist");
         return false;
     }
 
     public boolean userNameExists(String username) {
+        LOGGER.info("userNameExists method called");
         UserEntity a = userDao.findUserByUsername(username);
         if (a != null) {
+            LOGGER.info("User " + a.getUsername() + " exists");
             return true;
         }
+        LOGGER.info("User " + a.getUsername() + " does not exist");
         return false;
     }
 
     public boolean isUserAuthorized(String token) {
+        LOGGER.info("isUserAuthorized method called");
         UserEntity a = userDao.findUserByToken(token);
         if (a != null) {
-
+            LOGGER.info("User " + a.getUsername() + " is authorized");
                 return true;
-
         }
-
+        LOGGER.info("User " + a.getUsername() + " is not authorized");
         return false;
     }
 
 
 
     public boolean isUserValid(User user) {
+        LOGGER.info("isUserValid method called");
         if (user.getUsername().isBlank() || user.getName().isBlank() || user.getEmail().isBlank() || user.getContactNumber().isBlank() || user.getUserPhoto().isBlank()) {
+            LOGGER.info("User is not valid");
             return false;
         } else if (user.getUsername() == null || user.getName() == null || user.getEmail() == null || user.getContactNumber() == null || user.getUserPhoto() == null) {
+            LOGGER.info("User is not valid");
             return false;
         }
+        LOGGER.info("User is valid");
         return true;
     }
 
     public User getUserByUsername(String username) {
+        LOGGER.info("getUserByUsername method called");
         UserEntity userEntity = userDao.findUserByUsername(username);
+        LOGGER.info("User " + userEntity.getUsername() + " has been found by his username");
         return convertToDto(userEntity);
     }
     public ArrayList<User> getActiveUsers() {
+        LOGGER.info("getActiveUsers method called");
         List<UserEntity> users = userDao.getActiveUsers();
         ArrayList<User> usersDto = new ArrayList<>();
         for (UserEntity user : users) {
@@ -280,12 +341,14 @@ public boolean findOtherUserByUsername(String username) {
                 usersDto.add(convertToDto(user));
             }
         }
+        LOGGER.info("All active users have been found");
         return usersDto;
     }
 
 
 
     public UserEntity convertToEntity(User user) {
+        LOGGER.info("convertToEntity method called");
         UserEntity userEntity = new UserEntity();
         userEntity.setUsername(user.getUsername());
         userEntity.setName(user.getName());
@@ -299,10 +362,12 @@ public boolean findOtherUserByUsername(String username) {
         userEntity.setConfirmed(user.isConfirmed());
         userEntity.setDateCreated(user.getDateCreated());
         userEntity.setConfirmationToken(user.getConfirmationToken());
+        LOGGER.info("UserEntity created");
         return userEntity;
     }
 
     public User convertToDto(UserEntity userEntity) {
+        LOGGER.info("convertToDto method called");
         User user = new User();
         user.setUsername(userEntity.getUsername());
         user.setName(userEntity.getName());
@@ -314,33 +379,42 @@ public boolean findOtherUserByUsername(String username) {
         user.setRole(userEntity.getRole());
         user.setActive(userEntity.isActive());
         user.setConfirmed(userEntity.isConfirmed());
+        LOGGER.info("UserDto created");
         return user;
     }
 
     public boolean tokenExists(String token) {
+        LOGGER.info("tokenExists method called");
         UserEntity a = userDao.findUserByToken(token);
+        LOGGER.info("Token exists");
         return a != null;
     }
 
     public String generateToken() {
+        LOGGER.info("generateToken method called");
         String token = "";
         for (int i = 0; i < 10; i++) {
             token += (char) (Math.random() * 26 + 'a');
         }
+        LOGGER.info("Token generated");
         return token;
     }
 
     public String generateConfirmationToken() {
+        LOGGER.info("generateConfirmationToken method called");
         String token = "";
         for (int i = 0; i < 10; i++) {
             token += (char) (Math.random() * 26 + 'a');
         }
+        LOGGER.info("Confirmation token generated");
         return token;
     }
 
 
     public boolean deleteUser(String token, String username) {
+        LOGGER.info("deleteUser method called");
         if(username.equals("admin") || username.equals("deleted")){
+            LOGGER.info("User " + username + " cannot be deleted");
             return false;
         }
 
@@ -350,10 +424,13 @@ public boolean findOtherUserByUsername(String username) {
             user.setActive(false);
             user.setToken(null);
             userDao.updateUser(user);
+            LOGGER.info("User " + user.getUsername() + " has been deleted");
             return true;
         }
         if (responsible.getRole().equals("Owner") && !user.isActive()) {
+
             if(doesUserHaveTasks(username)){
+                LOGGER.info("User " + user.getUsername() + " has tasks and cannot be deleted");
                 List<TaskEntity> tasks = taskBean.getTasksByUser(user);
                 UserEntity deletedUser = userDao.findUserByUsername("deleted");
                 for(TaskEntity task: tasks){
@@ -371,21 +448,25 @@ public boolean findOtherUserByUsername(String username) {
                     NotificationDao.deleteNotification(notification);
                 }
             }
-
+            LOGGER.info("User " + user.getUsername() + " has been deleted");
             userDao.remove(user);
             return true;
         }
+        LOGGER.info("User " + user.getUsername() + " has not been deleted");
         return false;
     }
 
     public void logout(String token) {
+        LOGGER.info("logout method called");
         UserEntity user = userDao.findUserByToken(token);
         user.setLastInteraction(null);
         user.setToken(null);
         userDao.updateUser(user);
+        LOGGER.info("User " + user.getUsername() + " has logged out");
     }
 
     public UserDto convertUsertoUserDto(User user) {
+        LOGGER.info("convertUsertoUserDto method called");
         UserDto userDto = new UserDto();
         userDto.setName(user.getName());
         userDto.setEmail(user.getEmail());
@@ -394,37 +475,48 @@ public boolean findOtherUserByUsername(String username) {
         userDto.setUserPhoto(user.getUserPhoto());
         userDto.setUsername(user.getUsername());
         userDto.setActive(user.isActive());
+        LOGGER.info("UserDto created");
         return userDto;
     }
 
     public boolean isUserOwner(String token) {
+        LOGGER.info("isUserOwner method called");
         UserEntity a = userDao.findUserByToken(token);
         if (a.getRole().equals("Owner")) {
+            LOGGER.info("User " + a.getUsername() + " is owner");
             return true;
         }
+        LOGGER.info("User " + a.getUsername() + " is not owner");
         return false;
     }
 
     public boolean restoreUser(String username) {
+        LOGGER.info("restoreUser method called");
         UserEntity a = userDao.findUserByUsername(username);
         if (a != null) {
             a.setActive(true);
             userDao.updateUser(a);
+            LOGGER.info("User " + a.getUsername() + " has been restored");
             return true;
         }
+        LOGGER.info("User " + a.getUsername() + " has not been restored");
         return false;
     }
 
     public boolean doesUserHaveTasks(String username) {
+        LOGGER.info("doesUserHaveTasks method called");
         UserEntity a = userDao.findUserByUsername(username);
         List<TaskEntity> tasks = taskBean.getTasksByUser(a);
         if (tasks.size() > 0) {
+            LOGGER.info("User " + a.getUsername() + " has tasks");
             return true;
         } else {
+            LOGGER.info("User " + a.getUsername() + " does not have tasks");
             return false;
         }
     }
     public void createDefaultUsers() {
+        LOGGER.info("createDefaultUsers method called");
         if(userDao.findUserByUsername("admin") == null) {
             UserEntity userEntity = new UserEntity();
             userEntity.setUsername("admin");
@@ -503,29 +595,37 @@ public boolean findOtherUserByUsername(String username) {
     }
 
     public ArrayList<User> getFilteredUsers(String role, Boolean active) {
+        LOGGER.info("getFilteredUsers method called");
         ArrayList<User> usersDto = new ArrayList<>();
         if(active==null && role==null){
+            LOGGER.info("No filter applied");
             return getAllUsers();
         }
         if (active && role == null ) {
+            LOGGER.info("Filter applied: active");
             return getActiveUsers();
         } else if (!active && role == null ) {
+            LOGGER.info("Filter applied: inactive");
             return getDeletedUsers();
 
         } else if (active && role != null ) {
+            LOGGER.info("Filter applied: active and role");
             List<UserEntity> users = userDao.getUsersByRole(role,active);
             for (UserEntity user : users) {
                 usersDto.add(convertToDto(user));
             }
+            LOGGER.info("Users found");
             return usersDto;
 
         } else if (!active && role != null) {
+            LOGGER.info("Filter applied: inactive and role");
             List<UserEntity> users = userDao.getDeletedUsers();
             for (UserEntity user : users) {
                 if (user.getRole().equals(role)) {
                     usersDto.add(convertToDto(user));
                 }
             }
+            LOGGER.info("Users found");
             return usersDto;
         } else if (!active && role == null ) {
             List<UserEntity> users = userDao.getDeletedUsers();
@@ -539,25 +639,30 @@ public boolean findOtherUserByUsername(String username) {
     }
 
     public ArrayList<User> getAllUsers() {
+        LOGGER.info("getAllUsers method called");
         List<UserEntity> users = userDao.findAllUsers();
         ArrayList<User> usersDto = new ArrayList<>();
         for (UserEntity user : users) {
             usersDto.add(convertToDto(user));
         }
+        LOGGER.info("All users have been found");
         return usersDto;
     }
 
 
     public ArrayList<User> getDeletedUsers() {
+        LOGGER.info("getDeletedUsers method called");
         List<UserEntity> users = userDao.getDeletedUsers();
         ArrayList<User> usersDto = new ArrayList<>();
         for (UserEntity user : users) {
             usersDto.add(convertToDto(user));
         }
+        LOGGER.info("All deleted users have been found");
         return usersDto;
     }
 
     public void sendMessage(MessageDto messageDto) {
+        LOGGER.info("sendMessage method called");
         UserEntity sender = userDao.findUserByUsername(messageDto.getSender());
         UserEntity receiver = userDao.findUserByUsername(messageDto.getReceiver());
         if (sender != null && receiver != null) {
@@ -571,6 +676,7 @@ public boolean findOtherUserByUsername(String username) {
         }
     }
     public MessageEntity convertToEntity(MessageDto messageDto) {
+        LOGGER.info("convertToEntity method called");
         MessageEntity messageEntity = new MessageEntity();
         messageEntity.setMessage(messageDto.getMessage());
         messageEntity.setSender(userDao.findUserByUsername(messageDto.getSender()));
@@ -581,6 +687,7 @@ public boolean findOtherUserByUsername(String username) {
     }
 
     public MessageDto convertToDto(MessageEntity messageEntity) {
+        LOGGER.info("convertToDto method called");
         MessageDto messageDto = new MessageDto();
         messageDto.setMessage(messageEntity.getMessage());
         messageDto.setSender(messageEntity.getSender().getUsername());
@@ -591,27 +698,33 @@ public boolean findOtherUserByUsername(String username) {
     }
 
     public ArrayList<Integer> getTaskTotals (String username, int todo, int doing, int done) {
+        LOGGER.info("getTaskTotals method called");
         UserEntity user = userDao.findUserByUsername(username);
         ArrayList<Integer> taskTotals = new ArrayList<>();
         taskTotals.add(taskDao.findTotalActiveTasks(user) );
         taskTotals.add(taskDao.findActiveTasksByStatusAndUser(user,todo));
         taskTotals.add(taskDao.findActiveTasksByStatusAndUser(user,doing));
         taskTotals.add(taskDao.findActiveTasksByStatusAndUser(user,done));
+        LOGGER.info("Task totals found");
         return taskTotals;
     }
 
     public UserStatisticsDto getStatistics() {
+        LOGGER.info("getStatistics method called");
         UserStatisticsDto statisticsDto = new UserStatisticsDto();
         statisticsDto.setTotalUsers(userDao.findAll().size());
         statisticsDto.setTotalConfirmedusers(userDao.getActiveUsers().size());
         statisticsDto.setTotalBlockedUsers(userDao.getDeletedUsers().size());
         statisticsDto.setTotalUnconfirmedUsers(userDao.getUnconfirmedUsers());
         statisticsDto.setConfirmedUsersByDate(countConfirmedUsersByDate());
+        LOGGER.info("Statistics found");
         return statisticsDto;
     }
 
     public Map<LocalDate, Long> countConfirmedUsersByDate() {
+        LOGGER.info("countConfirmedUsersByDate method called");
         List<Object[]> results = userDao.countConfirmedUsersByDate();
+        LOGGER.info("Confirmed users counted by date");
         return results.stream()
                 .collect(Collectors.toMap(
                         result -> (LocalDate) result[0],
@@ -620,13 +733,14 @@ public boolean findOtherUserByUsername(String username) {
     }
 
     public void createInitialTimeOut() {
+        LOGGER.info("createInitialTimeOut method called");
         if (userDao.findTimeOut(1) == null) {
             TimeOut timeout = new TimeOut();
             timeout.setTimeOut(5);
             timeout.setUnconfirmedTimeOut(3);
             userDao.createTimeOut(timeout);
         }
-
+        LOGGER.info("Initial timeout created");
     }
 }
 

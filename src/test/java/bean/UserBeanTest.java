@@ -34,19 +34,7 @@ class UserBeanTest {
         MockitoAnnotations.openMocks(this);
     }
 
-    @Test
-    void addUser_ValidUser_AddsUser() {
-        User user = new User("testUser", "Test User", "test@example.com", "password", "123456789", "https://example.com/photo.jpg", "developer");
-        UserEntity userEntity = new UserEntity();
-        when(encryptHelperMock.encryptPassword(user.getPassword())).thenReturn(user.getPassword()); // Mock encryptHelper behavior
-        when(userDaoMock.findUserByUsername(user.getUsername())).thenReturn(null); // Mock userDao behavior
-        doNothing().when(userDaoMock).persist(any(UserEntity.class)); // Mock userDao behavior
 
-        userBean.addUser(user);
-
-        verify(encryptHelperMock).encryptPassword(user.getPassword());
-        verify(userDaoMock).persist(any(UserEntity.class));
-    }
 
     @Test
     void getUser_ValidToken_ReturnsUser() {

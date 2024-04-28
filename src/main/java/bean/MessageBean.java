@@ -51,6 +51,7 @@ public class MessageBean {
     }
 
     public List<MessageDto> getMessagesBetweenUsers(UserEntity user1, UserEntity user2) {
+        LOGGER.info("getMessagesBetweenUsers method called");
         List<MessageEntity> messageEntities = messageDao.findMessageByUser(user1, user2);
         List<MessageDto> messageDtos = new ArrayList<>();
 
@@ -63,15 +64,17 @@ public class MessageBean {
             messageDto.setRead(messageEntity.isRead());
             messageDtos.add(messageDto);
         }
-
+        LOGGER.info("Messages between users retrieved.");
         return messageDtos;
     }
 
     public void markMessagesAsRead(UserEntity user1, UserEntity user2) {
+        LOGGER.info("markMessagesAsRead method called");
         List<MessageEntity> messageEntities = messageDao.findMessageByUser(user1, user2);
 
         for (MessageEntity messageEntity : messageEntities) {
             if (messageEntity.getReceiver().getUsername().equals(user1.getUsername()) && !messageEntity.isRead()) {
+                LOGGER.info("Message marked as read.");
                 messageEntity.setRead(true);
                 messageDao.update(messageEntity);
                 if(isReceiverloggedIn(user1, user2) != null){
@@ -84,7 +87,9 @@ public class MessageBean {
                     try {
                         ObjectMapper mapper = contextResolver.getContext(Object.class);
                         messageEndpoint.send(mapper.writeValueAsString(messageDto), user1.getToken(), user2.getUsername());
+                        LOGGER.info("Message sent to the receiver.");
                     } catch (IOException e) {
+                        LOGGER.log(Level.SEVERE, "Error while sending the message to the receiver: ", e);
                         throw new RuntimeException("Falha ao serializar a mensagem para JSON", e);
                     }
                 }
@@ -94,17 +99,22 @@ public class MessageBean {
         readConfirmation.setSender(user2.getUsername());
         readConfirmation.setReceiver(user1.getUsername());
         readConfirmation.setMessage("All messages have been read");
+        LOGGER.info("All messages marked as read.");
         try {
             ObjectMapper mapper = contextResolver.getContext(Object.class);
             messageEndpoint.send(mapper.writeValueAsString(readConfirmation), user2.getToken(), user1.getUsername());
+            LOGGER.info("Read confirmation sent to the sender.");
         } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, "Error while sending the read confirmation to the sender: ", e);
             throw new RuntimeException("Falha ao serializar a mensagem para JSON", e);
         }
     }
 
     public Session isReceiverloggedIn(UserEntity receiver, UserEntity sender) {
+        LOGGER.info("isReceiverloggedIn method called");
         String conversationId = receiver.getToken() + sender.getUsername();
         Map<String, jakarta.websocket.Session> sessions = getSessions();
+        LOGGER.info("Receiver is logged in.");
         return sessions.get(conversationId);
     }
 }

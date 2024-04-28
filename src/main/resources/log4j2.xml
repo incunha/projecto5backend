@@ -12,7 +12,6 @@
 %highlight{%level}{FATAL=bg_red, ERROR=red, WARN=yellow, INFO=green, DEBUG=blue} -
 %msg%n" />
             <Policies>
-                <OnStartupTriggeringPolicy />
                 <TimeBasedTriggeringPolicy />
                 <SizeBasedTriggeringPolicy size="50 MB" />
             </Policies>

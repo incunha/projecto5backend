@@ -5,6 +5,8 @@ import jakarta.ejb.Stateless;
 import jakarta.mail.*;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 import java.time.LocalDateTime;
@@ -16,16 +18,17 @@ public class EmailBean {
 
     @EJB
     private UserBean userBean;
-
     private final String username = "ines_bcunha@hotmail.com";
     private final String password = System.getenv("SMTP_PASSWORD");
     private final String host = "smtp-mail.outlook.com";
     private final int port = 587;
 
+    private static final Logger LOGGER = LogManager.getLogger(EmailBean.class);
     public EmailBean() {
     }
 
     public boolean sendEmail(String to, String subject, String body) {
+        LOGGER.info("sendEmail method called");
         boolean sent = false;
 
         Properties props = new Properties();
@@ -40,6 +43,7 @@ public class EmailBean {
                 return new PasswordAuthentication(username, password);
             }
         });
+        LOGGER.info("Sending email to " + to + "...");
 
         try {
             System.out.println("Sending email to " + to + "...");
@@ -51,15 +55,19 @@ public class EmailBean {
             System.out.println("Sending email...");
             Transport.send(message);
             sent = true;
+            LOGGER.info("Email sent successfully.");
         } catch (MessagingException e) {
             sent = false;
             e.printStackTrace();
+            LOGGER.error("Error while sending email: ", e);
         }
 
+        LOGGER.info("Email sent: " + sent);
         return sent;
     }
 
     public boolean sendConfirmationEmail(User user, String confirmationToken, LocalDateTime creationDate) {
+        LOGGER.info("sendConfirmationEmail method called");
         boolean sent = false;
 
         String userEmail = user.getEmail();
@@ -70,6 +78,7 @@ public class EmailBean {
                 + "Confirmation Link: " + confirmationLink;
 
         if (sendEmail(userEmail, subject, body)) {
+            LOGGER.info("Email sent successfully.");
             sent = true;
         } else {
             // Verifica se já se passaram mais de 48 horas desde a criação do user
@@ -79,10 +88,12 @@ public class EmailBean {
                 userBean.removeUser(user.getUsername());
             }
         }
+        LOGGER.info("Email sent: " + sent);
         return sent;
     }
 
     public boolean sendPasswordRecoverEmail(User user, String confirmationToken, LocalDateTime creationDate) {
+        LOGGER.info("sendPasswordRecoverEmail method called");
         boolean sent = false;
 
         String userEmail = user.getEmail();
@@ -93,8 +104,10 @@ public class EmailBean {
                 + "Password Recovery Link: " + recuperationLink;
 
         if (sendEmail(userEmail, subject, body)) {
+            LOGGER.info("Email sent successfully.");
             sent = true;
         }
+        LOGGER.info("Email sent: " + sent);
         return sent;
     }
 }
