@@ -296,7 +296,7 @@ public boolean findOtherUserByUsername(String username) {
             LOGGER.info("User " + a.getUsername() + " exists");
             return true;
         }
-        LOGGER.info("User " + a.getUsername() + " does not exist");
+        LOGGER.info("Username does not exist");
         return false;
     }
 

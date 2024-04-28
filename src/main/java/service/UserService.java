@@ -178,12 +178,15 @@ public class UserService {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateUser(@HeaderParam("token") String token, User a, @Context HttpServletRequest request) {
+        System.out.println("ENTROU1");
         boolean user = userBean.userNameExists(a.getUsername());
         boolean valid = userBean.isUserValid(a);
         if (!user) {
+            System.out.println("ENTROU2");
             LOGGER.info("User with this username is not found");
             return Response.status(404).entity("User with this username is not found").build();
         } else if (!valid) {
+            System.out.println("ENTROU3");
             LOGGER.info("All elements are required");
             return Response.status(406).entity("All elements are required").build();
         }
@@ -192,9 +195,11 @@ public class UserService {
             a.setPassword(userBean.getUser(token).getPassword());
             boolean updated = userBean.updateUser(token, a);
             if (!updated) {
+                System.out.println("ENTROU4");
                 LOGGER.info("User not updated");
                 return Response.status(400).entity("Failed. User not updated").build();
             }
+            System.out.println("ENTROU5");
             LOGGER.info("User updated");
             return Response.status(200).entity("User updated").build();
 
@@ -202,12 +207,15 @@ public class UserService {
             boolean updated = userBean.ownerupdateUser(token, a);
 
             if (!updated) {
+                System.out.println("ENTROU6");
                 LOGGER.info("User not updated");
                 return Response.status(400).entity("Failed. User not updated").build();
             }
+            System.out.println("ENTROU7");
             LOGGER.info("User updated");
             return Response.status(200).entity("User updated").build();
         }
+        System.out.println("ENTROU8");
         LOGGER.info("User not updated");
         return Response.status(403).entity("Forbidden").build();
     }

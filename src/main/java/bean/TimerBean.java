@@ -57,6 +57,7 @@ public class TimerBean {
                         if (duration.toMinutes() > timeoutValue) {
                             LOGGER.info("User has been logged out due to inactivity");
                             notifier.sendLogoutNotification(user.getUsername());
+                            userBean.logout(user.getUsername());
                         }
                     }
                 }
