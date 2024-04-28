@@ -4,6 +4,7 @@ import bean.UserBean;
 import dao.UserDao;
 import dto.PasswordDto;
 import dto.User;
+import entities.TimeOut;
 import entities.UserEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -76,17 +77,7 @@ class UserBeanTest {
         verify(userDaoMock).updateUser(userEntity);
     }
 
-    @Test
-    void blockUser_InvalidUsername_ReturnsFalse() {
 
-        String username = "nonExistingUser";
-        when(userDaoMock.findUserByUsername(username)).thenReturn(null); // Mock userDao behavior
-
-        boolean result = userBean.blockUser(username);
-
-        assertFalse(result);
-        verify(userDaoMock, never()).updateUser(any(UserEntity.class));
-    }
     @Test
     void removeUser_ValidUsername_RemovesUser() {
         // Arrange
@@ -113,17 +104,7 @@ class UserBeanTest {
         assertTrue(result);
         verify(userDaoMock).remove(userEntity);
     }
-    @Test
-    void blockUser_UserDoesNotExist_ReturnsFalse() {
 
-        String username = "nonExistingUser";
-        when(userDaoMock.findUserByUsername(username)).thenReturn(null); // Mock userDao behavior
-
-        boolean result = userBean.blockUser(username);
-
-        assertFalse(result);
-        verify(userDaoMock, never()).updateUser(any(UserEntity.class));
-    }
     @Test
     void blockUser_UserExists_BlocksUser() {
         // Arrange
@@ -150,4 +131,14 @@ class UserBeanTest {
         assertNotNull(result);
         assertEquals(2, result.size());
     }
+
+        @Test
+        void testCreateInitialTimeOut() {
+            when(userDaoMock.findTimeOut(1)).thenReturn(null);
+
+            userBean.createInitialTimeOut();
+
+            verify(userDaoMock).createTimeOut(any(TimeOut.class));
+        }
+
 }

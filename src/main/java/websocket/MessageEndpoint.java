@@ -40,7 +40,7 @@ public class MessageEndpoint {
     @Inject
     private MessageBean messageBean;
     @Inject
-    private NotificationBean notificationBean; // Injetar o NotificationBean
+    private NotificationBean notificationBean;
 
     private static final Logger LOGGER = Logger.getLogger(MessageEndpoint.class.getName());
     // Existing private variable
@@ -92,6 +92,8 @@ public class MessageEndpoint {
 
         // Buscar UserEntity para o remetente e o destinatário
         UserEntity sender = userDao.findUserByUsername(messageDto.getSender());
+        sender.setLastInteraction(LocalDateTime.now());
+        userDao.updateUser(sender);
         System.out.println("Sender: " + sender.getUsername());
         UserEntity receiver = userDao.findUserByUsername(messageDto.getReceiver());
         System.out.println("Receiver: " + receiver.getUsername());
