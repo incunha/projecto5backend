@@ -36,7 +36,7 @@ public class TimerBean {
 
         for (UserEntity user : users) {
             if(user.getConfirmationToken() != null){
-                LOGGER.info("User is not confirmed");
+
                 TimeOut timeOut = userDao.findTimeOut(1);
                 int unconfirmedTimeoutValue = timeOut.getUnconfirmedTimeOut();
                 LocalDateTime lastInteraction = user.getLastInteraction();
@@ -57,7 +57,8 @@ public class TimerBean {
                         if (duration.toMinutes() > timeoutValue) {
                             LOGGER.info("User has been logged out due to inactivity");
                             notifier.sendLogoutNotification(user.getUsername());
-                            userBean.logout(user.getUsername());
+                            userBean.forcedLogout(user.getUsername());
+
                         }
                     }
                 }

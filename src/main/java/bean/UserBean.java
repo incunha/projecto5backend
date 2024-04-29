@@ -305,6 +305,8 @@ public boolean findOtherUserByUsername(String username) {
         UserEntity a = userDao.findUserByToken(token);
         if (a != null) {
             LOGGER.info("User " + a.getUsername() + " is authorized");
+            a.setLastInteraction(LocalDateTime.now());
+            userDao.updateUser(a);
                 return true;
         }
         LOGGER.info("User " + a.getUsername() + " is not authorized");
@@ -463,6 +465,14 @@ public boolean findOtherUserByUsername(String username) {
         user.setToken(null);
         userDao.updateUser(user);
         LOGGER.info("User " + user.getUsername() + " has logged out");
+    }
+    public void forcedLogout(String username) {
+        LOGGER.info("forcedLogout method called");
+        UserEntity user = userDao.findUserByUsername(username);
+        user.setLastInteraction(null);
+        user.setToken(null);
+        userDao.updateUser(user);
+        LOGGER.info("User " + user.getUsername() + " has been forced to log out");
     }
 
     public UserDto convertUsertoUserDto(User user) {
